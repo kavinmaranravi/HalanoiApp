@@ -370,6 +370,20 @@ fun HalanoiDashboard() {
             Text("Block Keyword 🎯")
         }
 
+        Spacer(modifier = Modifier.height(24.dp))
+        Button(
+            onClick = {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/Founder/HalanoiApp"))
+                context.startActivity(intent)
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF24292F)),
+            modifier = Modifier
+                .fillMaxWidth(0.8f)
+                .height(48.dp)
+        ) {
+            Text("Star us on GitHub ⭐", color = Color.White, fontSize = 14.sp)
+        }
+
         Spacer(modifier = Modifier.height(32.dp))
         Text(
             text = "AI Vision & Text Sniper are active via Accessibility Service.",

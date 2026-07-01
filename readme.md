@@ -1,9 +1,28 @@
 # Halanoi Sovereign 🛡️
 ### High-Security Offline Android Focus & Anti-Distraction Engine
 
-**Halanoi Sovereign** is a professional-grade, open-source focus lockdown utility for Android. By utilizing **Device Owner** administrative privileges (similar to corporate IT policies) combined with a local **Edge AI Screen Sniper**, Halanoi makes it virtually impossible to bypass your focus session or sneak past your study blocks.
+<p align="center">
+  <img src="graphics/logo.png" alt="Halanoi Logo" width="120px" height="120px" />
+</p>
 
-All security checks, AI classifications, and VPN filtering run **100% locally on-device** for absolute privacy and offline security.
+<p align="center">
+  <b>Halanoi Sovereign</b> is a professional-grade, open-source focus lockdown utility for Android. By utilizing <b>Device Owner</b> administrative privileges (similar to corporate IT policies) combined with a local <b>Edge AI Screen Sniper</b>, Halanoi makes it virtually impossible to bypass your focus session or sneak past your study blocks.
+</p>
+
+<p align="center">
+  <a href="https://github.com/yourusername/HalanoiApp/releases"><img src="https://img.shields.io/github/v/release/yourusername/HalanoiApp?style=for-the-badge&logo=android&color=success" alt="Latest Release" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/yourusername/HalanoiApp?style=for-the-badge&color=blue" alt="License" /></a>
+</p>
+
+---
+
+## 📸 Demo & Visual Proof
+
+<p align="center">
+  <img src="graphics/demo.gif" alt="Halanoi Block Demonstration" width="300px" />
+  <br />
+  <i>Demo showing the Screen Sniper detecting distracting content in real-time and immediately locking down the phone.</i>
+</p>
 
 ---
 
@@ -30,8 +49,30 @@ All security checks, AI classifications, and VPN filtering run **100% locally on
 *   **VPN Lockdown**: Prevents turning off or modifying the local VPN Network Shield.
 *   **Sideloading Guard**: Revokes permission to install unknown apps, blocking manual APK installations from WhatsApp, Chrome downloads, or File Managers.
 
-### 4. Activity Logs & Timelines 📝
-*   A built-in logging screen to write study notes, check timelines, and keep track of your focus streaks.
+---
+
+## 📐 System Architecture
+
+Here is how the VPN Shield, Accessibility Service, and Device Policy Manager collaborate locally:
+
+```mermaid
+graph TD
+    A[User Action / Launcher] --> B{App Launched?}
+    B -->|Browser App| C[HalanoiAccessibilityService]
+    B -->|Normal App| D{Is App Locked in Vault?}
+    
+    D -->|Yes| E[OS Suspends App / Blocks Window]
+    D -->|No| F[App Allowed]
+    
+    C --> G{Is Browser Unauthorized?}
+    G -->|Yes (Alternative Browser)| H[DPM Instantly Hides & Kills App]
+    G -->|No (Chrome & Authorized)| I[User Browses]
+    
+    I --> J[AI Vision Sniper Scrapes Text & URL]
+    J --> K{TFLite Model Analysis}
+    K -->|Distraction / NSFW / Custom Keyword| L[Redirect to Loopback 127.0.0.1 & Go Home]
+    K -->|Safe / Education| I
+```
 
 ---
 
@@ -47,7 +88,7 @@ Setting up Halanoi Sovereign requires setting it as a **Device Owner** using And
 ### Installation & Activation:
 
 1.  **Remove Google Accounts** (Android OS Security Requirement):
-    Go to `Settings > Accounts` on your phone and temporarily **remove all Google and Vivo/manufacturer accounts**. 
+    Go to `Settings > Accounts` on your phone and temporarily **remove all Google and manufacturer accounts**. 
     *   *Why? Android security rules only allow setting a Device Owner if no user accounts are currently active on the device. You can immediately re-add them after Step 4.*
 2.  **Build & Install the APK**:
     Build the debug APK and install it on your device:
