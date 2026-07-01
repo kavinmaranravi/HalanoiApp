@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Use Theme.AppCompat or Theme.MaterialComponents for AppCompatActivity -->
+    <style name="Theme.Halanoi" parent="Theme.MaterialComponents.DayNight.NoActionBar" />
+
+    <style name="Theme.HalanoiApp" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>

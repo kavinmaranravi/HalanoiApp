@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="#E6121212"
+    android:padding="24dp">
+    <!-- The background is mostly opaque dark grey (#E6121212) -->
+
+    <ImageView
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:src="@android:drawable/ic_dialog_alert"
+        android:tint="#CF6679"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:id="@+id/tvBlockTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Distraction Blocked"
+        android:textColor="#CF6679"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:id="@+id/tvBlockReason"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Reason text goes here..."
+        android:textColor="#AAAAAA"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:layout_marginBottom="32dp"/>
+
+    <Button
+        android:id="@+id/btnGoBack"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Get Back to Studying"
+        android:backgroundTint="#03DAC5"
+        android:textColor="#000000"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/btnBypass"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Wait, I'm actually studying this."
+        android:backgroundTint="#333333"
+        android:textColor="#FFFFFF"
+        android:textAllCaps="false"/>
+
+</LinearLayout>

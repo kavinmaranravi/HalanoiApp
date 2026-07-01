@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Halanoi</string>
+    <string name="accessibility_description">Halanoi needs this to block distracting websites.</string>
+    <string name="accessibility_service_description">HALANOI Edge AI Screen Monitor</string>
+</resources>
