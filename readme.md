@@ -132,5 +132,11 @@ Once the admin status is removed, you can uninstall the app normally from your p
 
 ---
 
+## 🤝 Acknowledgements
+*   **Cloudflare Family DNS (`1.1.1.3` / `1.0.0.3`)**: For providing robust, high-speed, and secure public DNS resolvers that filter adult content at the network layer.
+*   **Google Cloud Platform (GCP) & Firebase**: For offering the backend cloud hosting and database services used to secure and sync user focus data.
+
+---
+
 ## 📝 License
 This project is open-source and licensed under the **GNU General Public License v3.0 (GPL-3.0)**. 
