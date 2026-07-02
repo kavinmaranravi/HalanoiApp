@@ -2,7 +2,7 @@
 ### High-Security Offline Android Focus & Anti-Distraction Engine
 
 <p align="center">
-  <img src="graphics/logo.png" alt="Halanoi Logo" width="120px" height="120px" />
+  <img src="graphics/logo.png" alt="Halanoi Logo" width="200" />
 </p>
 
 <p align="center">
