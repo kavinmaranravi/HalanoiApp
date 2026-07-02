@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://github.com/kavinmaranravi/HalanoiApp/releases"><img src="https://img.shields.io/github/v/release/kavinmaranravi/HalanoiApp?style=for-the-badge&logo=android&color=success" alt="Latest Release" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=for-the-badge" alt="License" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/kavinmaranravi/HalanoiApp?style=for-the-badge&color=blue" alt="License" /></a>
 </p>
 
 ---
