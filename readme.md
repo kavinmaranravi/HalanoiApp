@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/yourusername/HalanoiApp/releases"><img src="https://img.shields.io/github/v/release/yourusername/HalanoiApp?style=for-the-badge&logo=android&color=success" alt="Latest Release" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/yourusername/HalanoiApp?style=for-the-badge&color=blue" alt="License" /></a>
+  <a href="https://github.com/kavinmaranravi/HalanoiApp/releases"><img src="https://img.shields.io/github/v/release/kavinmaranravi/HalanoiApp?style=for-the-badge&logo=android&color=success" alt="Latest Release" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/kavinmaranravi/HalanoiApp?style=for-the-badge&color=blue" alt="License" /></a>
 </p>
 
 ---
@@ -35,7 +35,7 @@
 *   If classified above the confidence threshold, it instantly redirects the browser to `http://127.0.0.1`, hits Home, and locks the screen.
 
 ### 2. Browser Lockdown Shield 🌐
-*   **Standard Mode**: Allows Google Chrome (controllable via the app Vault), but **permanently blocks and hides** all other alternative browsers (Opera, Brave, Firefox, Edge, etc.) to prevent bypasses.
+*   **Standard Mode**: Allows Google Chrome (controllable via the app Vault), but **permanently blocks and hides** all other alternative browsers (Opera, Brave, Firefox, etc.) to prevent bypasses.
 *   **Chrome-Only Mode**: Disables and hides all browsers on the phone except Google Chrome.
 *   **Zero-Browser Mode**: Completely disables and hides all web browsers (including Chrome) for a total web blackout.
 *   **Active Store Scanner**: Runs background scans while you browse the Google Play Store, Vivo App Store, or package installers. It automatically detects and hides new browsers the moment they are installed.
@@ -65,13 +65,13 @@ graph TD
     D -->|No| F[App Allowed]
     
     C --> G{Is Browser Unauthorized?}
-    G -->|Yes (Alternative Browser)| H[DPM Instantly Hides & Kills App]
-    G -->|No (Chrome & Authorized)| I[User Browses]
+    G -->|"Yes - Alternative Browser"| H[DPM Instantly Hides & Kills App]
+    G -->|"No - Chrome & Authorized"| I[User Browses]
     
     I --> J[AI Vision Sniper Scrapes Text & URL]
-    J --> K{TFLite Model Analysis}
-    K -->|Distraction / NSFW / Custom Keyword| L[Redirect to Loopback 127.0.0.1 & Go Home]
-    K -->|Safe / Education| I
+    I --> K{TFLite Model Analysis}
+    K -->|"Distraction / NSFW / Custom Keyword"| L[Redirect to Loopback 127.0.0.1 & Go Home]
+    K -->|"Safe / Education"| I
 ```
 
 ---
