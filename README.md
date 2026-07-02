@@ -138,7 +138,20 @@ Once the admin status is removed, you can uninstall the app normally from your p
 
 ---
 
-## 🤝 Acknowledgements
+## 🤝 Contributing
+
+We welcome contributions from developers, machine learning researchers, and designers! Here are the main areas where you can help:
+
+*   **Android (Kotlin)**: Help optimize background service battery consumption and handle OEM background task killers.
+*   **Machine Learning (TFLite/Python)**: Improve model classification accuracy, compress model size, or add multilingual training datasets.
+*   **Chrome Extension**: Port the extension to Firefox/Safari or build secure local sync features.
+*   **UI/UX**: Help refine the Jetpack Compose mobile dashboard and accessibility onboarding screens.
+
+Please feel free to open **Issues** for bug reports/feature requests, or submit **Pull Requests** for direct contributions!
+
+---
+
+## 🎖️ Acknowledgements
 *   **Cloudflare Family DNS (`1.1.1.3` / `1.0.0.3`)**: For providing robust, high-speed, and secure public DNS resolvers that filter adult content at the network layer.
 
 ---
