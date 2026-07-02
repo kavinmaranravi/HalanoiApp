@@ -14,6 +14,10 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=for-the-badge" alt="License" /></a>
 </p>
 
+<p align="center">
+  📖 Read our <a href="NOTES.md"><b>User Disclosures & Notes</b></a> before installing, and check out the <a href="CODE_BREAKDOWN.md"><b>Code Breakdown</b></a> for developers.
+</p>
+
 ---
 
 ## 📸 Demo & Visual Proof
