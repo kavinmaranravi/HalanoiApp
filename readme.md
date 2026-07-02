@@ -19,7 +19,7 @@
 ## 📸 Demo & Visual Proof
 
 <p align="center">
-  <a href="https://github.com/kavinmaranravi/HalanoiApp/releases/download/v1.0.1/Demo_video.mp4">
+  <a href="https://drive.google.com/file/d/1r638o7YXSldGb8JchCbN1x6woVLiNB5q/view?usp=sharing">
     <img src="https://img.shields.io/badge/▶_Watch_Demo_Video-Click_to_Play-red?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch Demo Video" />
   </a>
   <br />
