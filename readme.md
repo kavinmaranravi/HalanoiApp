@@ -19,9 +19,12 @@
 ## 📸 Demo & Visual Proof
 
 <p align="center">
-  <video src="https://github.com/kavinmaranravi/HalanoiApp/releases/download/v1.0.1/Demo_video.mp4" width="300" controls></video>
+  <a href="https://github.com/kavinmaranravi/HalanoiApp/releases/download/v1.0.1/Demo_video.mp4">
+    <img src="https://img.shields.io/badge/▶_Watch_Demo_Video-Click_to_Play-red?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch Demo Video" />
+  </a>
   <br />
-  <i>Detailed demo video showing the Screen Sniper detecting distracting content in real-time and immediately locking down the phone.</i>
+  <br />
+  <i>Detailed demo video showing the Screen Sniper detecting distracting content in real-time and immediately locking down the phone. Click the button to watch it.</i>
 </p>
 
 ---
