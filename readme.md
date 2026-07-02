@@ -19,7 +19,7 @@
 ## 📸 Demo & Visual Proof
 
 <p align="center">
-  <video src="Demo_video.mp4" width="300" controls></video>
+  <video src="https://github.com/kavinmaranravi/HalanoiApp/releases/download/v1.0.1/Demo_video.mp4" width="300" controls></video>
   <br />
   <i>Detailed demo video showing the Screen Sniper detecting distracting content in real-time and immediately locking down the phone.</i>
 </p>
