@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  📖 Read our <a href="NOTES.md"><b>User Disclosures & Notes</b></a> before installing, and check out the <a href="CODE_BREAKDOWN.md"><b>Code Breakdown</b></a> for developers.
+  📖 Read our <a href="NOTES.md"><b>User Disclosures & Notes</b></a> before installing, check the <a href="TROUBLESHOOTING.md"><b>Troubleshooting Guide</b></a> if you hit errors, and read the <a href="CODE_BREAKDOWN.md"><b>Code Breakdown</b></a> for developers.
 </p>
 
 ---
