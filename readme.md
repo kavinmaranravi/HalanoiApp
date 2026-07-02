@@ -19,9 +19,9 @@
 ## 📸 Demo & Visual Proof
 
 <p align="center">
-  <img src="graphics/demo.gif" alt="Halanoi Block Demonstration" width="300px" />
+  <video src="Demo_video.mp4" width="300" controls></video>
   <br />
-  <i>Demo showing the Screen Sniper detecting distracting content in real-time and immediately locking down the phone.</i>
+  <i>Detailed demo video showing the Screen Sniper detecting distracting content in real-time and immediately locking down the phone.</i>
 </p>
 
 ---
