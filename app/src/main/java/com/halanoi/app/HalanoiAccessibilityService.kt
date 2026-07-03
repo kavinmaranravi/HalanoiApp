@@ -303,8 +303,7 @@ class HalanoiAccessibilityService : AccessibilityService() {
         val lowerText = text.lowercase()
         val sharedPrefs = getSharedPreferences("HalanoiVault", Context.MODE_PRIVATE)
         val customKeywords = sharedPrefs.getStringSet("CUSTOM_KEYWORDS", setOf())?.toList() ?: emptyList()
-        val baseKeywords = listOf("fortnite", "gta", "bikini", "pussy", "dick", "18+", "hentai", "brazzers", "xvideo", "pornstar", "trailer", "movie", "actress")
-        val allKeywords = baseKeywords + EXTREME_BANNED_WORDS + customKeywords
+        val allKeywords = EXTREME_BANNED_WORDS + customKeywords
         
         val matchedWord = allKeywords.find { it.isNotBlank() && lowerText.contains(it.lowercase()) }
         if (matchedWord != null) {
