@@ -20,12 +20,38 @@ Once activated as a Device Owner via ADB, Halanoi Sovereign enforces the followi
 
 The application contains the following pre-configured behaviors to prevent bypass loopholes:
 
-*   **Browser Blackout (Standard Mode)**: By default, the app automatically disables and hides **all alternative browsers** (Brave, Opera, Firefox, Edge, UC, Vivaldi, etc.) to prevent users from bypassing Chrome filters. Only Google Chrome remains active and is controlled via the Vault.
-*   **DNS Filtering**: The local VPN automatically redirects all network DNS queries to **Cloudflare Family DNS** (`1.1.1.3` / `1.0.0.3`) to block adult/NSFW web traffic at the socket level.
+*   **Browser Blackout (Standard Mode)**: By default, the app automatically disables and hides **all alternative web browsers** (Brave, Opera, Firefox, Edge, UC Browser, Vivaldi, Tor Browser, Ornet, etc.) to prevent users from accessing unfiltered web pages. Only Google Chrome remains active and is monitored.
+*   **DNS Filtering**: The local VPN automatically redirects all network DNS queries to **Cloudflare Family DNS** (`1.1.1.3` / `1.0.0.3`) to block adult/NSFW web traffic at the network level.
 
 ---
 
-## 🛠️ 3. Safe Recovery & Uninstallation Guide
+## 📱 3. App Blocking & AI Content Monitoring
+
+To keep you focused, Halanoi Sovereign uses a hybrid blocking approach:
+
+### 🚫 Permanently Blocked Apps
+These apps are completely blocked at the launch level to eliminate major distractions:
+*   **Social Media**: Twitter/X, Instagram, Facebook, Facebook Lite, Snapchat, Reddit
+*   **Streaming & Entertainment**: Netflix, Disney+ Hotstar, Amazon Prime Video, JioCinema, YouTube
+*   **Bypass Tools**: Android VPN Settings (`com.android.vpndialogs`), Orbot/Tor Proxy, InviZible Pro
+*   **System Protection**: Package Installer (to prevent bypassing admin controls)
+
+### 🔍 Monitored Web Browsers (AI Scanned)
+When using these browsers, the on-device AI scans the screen text. If it classifies the content under blocked categories (`nsfw`, `sports`, `entertainment`, or `politics`) with \(\ge 70\%\) confidence, the screen is locked:
+*   Google Chrome, Microsoft Edge, Mozilla Firefox, Samsung Internet Browser, DuckDuckGo Browser, Google Search App
+
+### 🟢 Bypass Keywords (Always Allowed)
+These keywords bypass the AI scanner to prevent false blocks while studying:
+*   **Weather**: `weather`, `climate`, `temperature`, `forecast`
+*   **Math & Science**: `latex formation`, `math`, `calculus`, `equation`
+*   **Software**: `code`, `programming`
+*   **Search Context**: `how can i`, `i am not able to`, `can you make`, `bro`, `give as`, `guv`
+
+*Note: Hardcoded keyword filtering list was removed to avoid shaming and maintain privacy. You can add your own custom search blocks in the app settings.*
+
+---
+
+## 🛠️ 4. Safe Recovery & Uninstallation Guide
 
 Since the app locks its own uninstallation and system settings, you cannot remove it directly from your phone. 
 
