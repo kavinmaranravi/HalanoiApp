@@ -13,6 +13,7 @@ Once activated as a Device Owner via ADB, Halanoi Sovereign enforces the followi
 *   **Force Stop & Clear Data Disabled**: In the Android App Info page, the "Force Stop" and "Clear Data" buttons are greyed out to prevent stopping the services.
 *   **Anti-Factory-Reset Guard**: The system "Factory Reset" (Erase all data) option in your phone settings is disabled and greyed out. This prevents wiping the device to bypass focus restrictions.
 *   **VPN Lockdown**: The local VPN cannot be disabled or bypassed by system settings.
+*   **APK Installation Block**: Installing apps from unknown sources (manually downloading and opening `.apk` files) is disabled at the system level, and the Android package installer is blocked.
 
 ---
 
