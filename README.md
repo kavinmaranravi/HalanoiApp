@@ -86,6 +86,20 @@ graph TD
 
 Setting up Halanoi Sovereign requires setting it as a **Device Owner** using Android Developer Options and a PC.
 
+### 🧪 Choose Your Version: Test/Sandbox vs. Lifelong Production
+
+Because Halanoi Sovereign uses enterprise-grade administrative locks, we recommend choosing your version carefully based on your experience level:
+
+*   **Option A: 🧪 Test & Sandbox Version (Recommended for First-Time Users)**
+    *   **Features**: Full focus locks (browser shields, local AI sniper, settings freeze) but includes an in-app **"Deactivate Device Owner 🔓"** button and allows ADB command removal.
+    *   **Best for**: Trying out the app, recording tutorials, and experiencing the layout without any risk of permanent lockdown.
+    *   **Setup**: Compile and install the test APK (or run `.\gradlew installDebug`).
+*   **Option B: 🔒 Lifelong Production Version (For Unbreakable Focus)**
+    *   **Features**: Complete, absolute lockdown. No deactivation buttons, and ADB removal is permanently blocked at the OS level by Android security.
+    *   **Removal**: **Requires a full Factory Reset** (wiping all phone data) to remove from the device. Use only when you are 100% committed to your long-term study streak!
+    *   **Setup**: Compile the release build with `testOnly="false"`.
+
+
 ### Prerequisites:
 1.  Enable **Developer Options** on your phone (Tap *Build Number* 7 times in Settings).
 2.  Enable **USB Debugging** inside Developer Options.
