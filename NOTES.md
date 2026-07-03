@@ -37,7 +37,7 @@ These apps are completely blocked at the launch level to eliminate major distrac
 *   **System Protection**: Package Installer (to prevent bypassing admin controls)
 
 ### 🔍 Monitored Web Browsers (AI Scanned)
-When using these browsers, the on-device AI scans the screen text. If it classifies the content under blocked categories (`nsfw`, `sports`, `entertainment`, or `politics`) with \(\ge 70\%\) confidence, the screen is locked:
+When using these browsers, the on-device AI scans the screen text. If it classifies the content under blocked categories (`nsfw`, `sports`, `entertainment`, or `politics`) with 70% or higher confidence, the screen is locked:
 *   Google Chrome, Microsoft Edge, Mozilla Firefox, Samsung Internet Browser, DuckDuckGo Browser, Google Search App
 
 ### 🟢 Bypass Keywords (Always Allowed)
