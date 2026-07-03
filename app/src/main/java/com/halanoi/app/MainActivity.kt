@@ -384,6 +384,31 @@ fun HalanoiDashboard() {
             Text("Star us on GitHub ⭐", color = Color.White, fontSize = 14.sp)
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = {
+                try {
+                    // Remove all restrictions before removing device owner to restore device to normal
+                    dpm.setUninstallBlocked(adminComponent, context.packageName, false)
+                    dpm.clearUserRestriction(adminComponent, "no_config_accessibility")
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        dpm.clearUserRestriction(adminComponent, UserManager.DISALLOW_FACTORY_RESET)
+                        dpm.clearUserRestriction(adminComponent, UserManager.DISALLOW_INSTALL_UNKNOWN_SOURCES)
+                    }
+                    dpm.clearDeviceOwnerApp(context.packageName)
+                    Toast.makeText(context, "Device Owner Deactivated successfully! 🎉", Toast.LENGTH_LONG).show()
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Deactivation failed: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray),
+            modifier = Modifier
+                .fillMaxWidth(0.8f)
+                .height(48.dp)
+        ) {
+            Text("Deactivate Device Owner 🔓", color = Color.White, fontSize = 14.sp)
+        }
+
         Spacer(modifier = Modifier.height(32.dp))
         Text(
             text = "AI Vision & Text Sniper are active via Accessibility Service.",
