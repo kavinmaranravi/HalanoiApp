@@ -46,9 +46,6 @@ These keywords bypass the AI scanner to prevent false blocks while studying:
 *   **Math & Science**: `latex formation`, `math`, `calculus`, `equation`
 *   **Software**: `code`, `programming`
 *   **Search Context**: `how can i`, `i am not able to`, `can you make`, `bro`, `give as`, `guv`
-
-*Note: Hardcoded keyword filtering list was removed to avoid shaming and maintain privacy. You can add your own custom search blocks in the app settings.*
-
 ---
 
 ## 🛠️ 4. Safe Recovery & Uninstallation Guide
