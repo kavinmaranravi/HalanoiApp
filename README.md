@@ -90,14 +90,28 @@ Setting up Halanoi Sovereign requires setting it as a **Device Owner** using And
 
 Because Halanoi Sovereign uses enterprise-grade administrative locks, we recommend choosing your version carefully based on your experience level:
 
+> [!WARNING]
+> **Safety Notice:** To protect users from accidentally locking their devices permanently, we **DO NOT** distribute the pre-compiled Production APK in the Releases section. 
+> * If you want a quick, risk-free test, use the pre-compiled **Sandbox Version**.
+> * If you are 100% committed and want the **Lifelong Production Version**, you must download the source code and compile it yourself using a laptop/PC (instructions below).
+
 *   **Option A: 🧪 Test & Sandbox Version (Recommended for First-Time Users)**
+    *   **Availability**: Pre-compiled as `Halanoi_Sovereign_Sandbox.apk` under the [Releases](https://github.com/kavinmaranravi/HalanoiApp/releases) tab.
     *   **Features**: Full focus locks (browser shields, local AI sniper, settings freeze) but includes an in-app **"Deactivate Device Owner 🔓"** button and allows ADB command removal.
     *   **Best for**: Trying out the app, recording tutorials, and experiencing the layout without any risk of permanent lockdown.
-    *   **Setup**: Compile and install the test APK (or run `.\gradlew installDebug`).
 *   **Option B: 🔒 Lifelong Production Version (For Unbreakable Focus)**
+    *   **Availability**: **Self-compiled only.** You must build this yourself to ensure you understand ADB and Gradle commands.
     *   **Features**: Complete, absolute lockdown. No deactivation buttons, and ADB removal is permanently blocked at the OS level by Android security.
     *   **Removal**: **Requires a full Factory Reset** (wiping all phone data) to remove from the device. Use only when you are 100% committed to your long-term study streak!
-    *   **Setup**: Compile the release build with `testOnly="false"`.
+    *   **How to Build & Locate**:
+        1. Open your terminal on your PC in the project root folder.
+        2. Compile the release build:
+           ```bash
+           ./gradlew assembleRelease
+           ```
+        3. The production APK will be generated at:
+           📂 `app/build/outputs/apk/release/app-release-unsigned.apk`
+
 
 
 ### Prerequisites:
