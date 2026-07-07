@@ -167,6 +167,18 @@ Once the admin status is removed, you can uninstall the app normally from your p
 
 ---
 
+## 📱 System Requirements
+
+To run Halanoi Sovereign, your device must meet the following requirements:
+*   **Android OS**: Android 10.0 (API Level 29) or higher.
+*   **Permissions Required**:
+    *   **Device Administrator / Owner** privileges (requires a PC with ADB installed to activate).
+    *   **Accessibility Service** permission (to scan screens and block keywords).
+    *   **Draw Over Other Apps** (System Alert Window) permission (to show the block overlay).
+    *   **VPN Configuration** access (for local DNS filtering).
+
+---
+
 ## 🤝 Contributing
 
 We welcome contributions from developers, machine learning researchers, and designers! Here are the main areas where you can help:
@@ -177,6 +189,18 @@ We welcome contributions from developers, machine learning researchers, and desi
 *   **UI/UX**: Help refine the Jetpack Compose mobile dashboard and accessibility onboarding screens.
 
 Please feel free to open **Issues** for bug reports/feature requests, or submit **Pull Requests** for direct contributions!
+
+---
+
+## 💬 Support & Bug Reports
+
+If you run into issues or have ideas to improve the app, please feel free to:
+1.  Check the [Troubleshooting Guide](TROUBLESHOOTING.md) for common ADB, DPM, and installation errors.
+2.  Open a new topic in [GitHub Discussions](https://github.com/kavinmaranravi/HalanoiApp/discussions) for general help or community support.
+3.  Open a [GitHub Issue](https://github.com/kavinmaranravi/HalanoiApp/issues) if you found a bug. Please include:
+    *   Your Android Version (e.g. Android 13) and Device Model (e.g. Samsung Galaxy S21).
+    *   Steps to reproduce the bug.
+    *   Relevant logs from Android Studio Logcat (if available).
 
 ---
 
