@@ -12,6 +12,7 @@
 <p align="center">
   <a href="https://github.com/kavinmaranravi/HalanoiApp/releases"><img src="https://img.shields.io/github/v/release/kavinmaranravi/HalanoiApp?style=for-the-badge&logo=android&color=success" alt="Latest Release" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=for-the-badge" alt="License" /></a>
+  <a href="https://ko-fi.com/kavinmaranravi"><img src="https://img.shields.io/badge/Support_on_Ko--Fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Support on Ko-Fi" /></a>
 </p>
 
 <p align="center">
@@ -181,6 +182,18 @@ Please feel free to open **Issues** for bug reports/feature requests, or submit 
 
 ## 🎖️ Acknowledgements
 *   **Cloudflare Family DNS (`1.1.1.3` / `1.0.0.3`)**: For providing robust, high-speed, and secure public DNS resolvers that filter adult content at the network layer.
+
+---
+
+## ☕ Support the Project
+
+If Halanoi has helped you reclaim your attention, stay productive, or build deep-work habits, consider supporting its development:
+
+<p align="left">
+  <a href="https://ko-fi.com/kavinmaranravi">
+    <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="ko-fi" height="36" />
+  </a>
+</p>
 
 ---
 
