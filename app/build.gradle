@@ -42,6 +42,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             manifestPlaceholders = [testOnly: "false"]
+            signingConfig signingConfigs.debug
         }
         debug {
             manifestPlaceholders = [testOnly: "true"]
