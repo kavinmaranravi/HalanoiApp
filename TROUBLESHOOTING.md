@@ -82,7 +82,48 @@ adb shell dpm set-device-owner com.halanoi.app/.HalanoiDeviceAdminReceiver
 
 ---
 
-## 🚨 5. How do I remove Halanoi Sovereign?
+## 🚨 5. Error: "INSTALL_PARSE_FAILED_NO_CERTIFICATES"
+
+### The Error Message:
+```text
+Failure [INSTALL_PARSE_FAILED_NO_CERTIFICATES: Failed to collect certificates from /data/app/... Attempt to get length of null array]
+```
+
+### Why it happens:
+Android security requires every installed app to be digitally signed with a certificate. This error happens when you try to manually install an **unsigned release build** (which has no certificate signature).
+
+### How to fix it:
+You must sign the release build before installing it. We have configured the project to automatically sign release builds using your local developer debug key.
+1. Run a rebuild using Gradle to output a signed release build:
+   ```bash
+   ./gradlew assembleRelease
+   ```
+2. The compiler will now output a signed version: **`app-release.apk`** (located at `app/build/outputs/apk/release/`).
+3. Install the signed APK instead of the unsigned one (remember to add the `-t` flag as explained below).
+
+---
+
+## 🚨 6. Error: "INSTALL_FAILED_TEST_ONLY"
+
+### The Error Message:
+```text
+Failure [INSTALL_FAILED_TEST_ONLY: Failed to install test-only apk. Did you forget to add -t?]
+```
+
+### Why it happens:
+By default, the debug build (and any release build signed with a developer debug key) is marked as a developer-only test build (`testOnly="true"`). Android blocks regular ADB installs of test builds to protect users.
+
+### How to fix it:
+You must explicitly authorize the installation by adding the **`-t`** parameter to your ADB command:
+```bash
+adb install -t app-debug.apk
+# or for the release build:
+adb install -t app-release.apk
+```
+
+---
+
+## 🚨 7. How do I remove Halanoi Sovereign?
 
 Because the app blocks standard uninstallation, you must use ADB to remove it:
 
@@ -91,3 +132,4 @@ Because the app blocks standard uninstallation, you must use ADB to remove it:
    adb shell dpm remove-active-admin com.halanoi.app/.HalanoiDeviceAdminReceiver
    ```
 2. Once the command completes, you can uninstall it like a normal app under `Settings > Apps > Halanoi > Uninstall`.
+
