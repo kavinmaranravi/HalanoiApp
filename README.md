@@ -111,7 +111,7 @@ Because Halanoi Sovereign uses enterprise-grade administrative locks, we recomme
            ./gradlew assembleRelease
            ```
         3. The production APK will be generated at:
-           📂 `app/build/outputs/apk/release/app-release-unsigned.apk`
+            📂 `app/build/outputs/apk/release/app-release.apk`
 
 
 
@@ -126,10 +126,17 @@ Because Halanoi Sovereign uses enterprise-grade administrative locks, we recomme
     Go to `Settings > Accounts` on your phone and temporarily **remove all Google and manufacturer accounts**. 
     *   *Why? Android security rules only allow setting a Device Owner if no user accounts are currently active on the device. You can immediately re-add them after Step 4.*
 2.  **Build & Install the APK**:
-    Build the debug APK and install it on your device:
+    Build the APK and install it on your device:
     ```bash
     ./gradlew installDebug
     ```
+    > [!NOTE]
+    > **Developer Signature & `-t` Flag**: Because these builds are signed locally with a developer debug signature (and not a Google Play production key), Android treats them as test builds. When installing manually via ADB, you **MUST** add the `-t` flag:
+    > ```bash
+    > adb install -t app-debug.apk
+    > # or for the self-compiled release build:
+    > adb install -t app-release.apk
+    > ```
 3.  **Set the Device Owner via ADB**:
     Connect your phone to your PC via USB and run this command in your PC terminal:
     ```bash
