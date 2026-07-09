@@ -311,10 +311,9 @@ object HalanoiPacketEngine {
                 return
             }
 
-            // Combine permanent hardcoded blocks with dynamic custom blocks
             val blockedWebsites = mutableListOf(
 
-                "twitter.com", "x.com", "instagram.com", "facebook.com", "meta.com", "linkedin.com", "tiktok.com",
+                "twitter.com", "x.com", "instagram.com", "facebook.com", "meta.com", "tiktok.com",
                 "netflix.com", "reddit.com", "primevideo.com", "twitch.tv", "hulu.com", "disneyplus.com",
                 "pinterest.com", "pinimg.com", "tumblr.com", "flickr.com", "deviantart.com", "imgur.com", "vsco.co", "onlyfans.com", "fansly.com"
             )
