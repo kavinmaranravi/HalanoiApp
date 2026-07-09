@@ -158,6 +158,49 @@ fun HalanoiDashboard() {
         }
     }
 
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            try {
+                context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                    val fileContent = inputStream.bufferedReader().use { it.readText() }
+                    
+                    val websites = parseSection(fileContent, "=== CUSTOM BLOCKED WEBSITES ===")
+                    val keywords = parseKeywords(fileContent)
+                    val apps = parseSection(fileContent, "=== LOCKED APPS ===")
+
+                    val editor = sharedPrefs.edit()
+                    
+                    if (websites.isNotEmpty()) {
+                        val currentSites = sharedPrefs.getStringSet("CUSTOM_SITES", setOf())?.toMutableSet() ?: mutableSetOf()
+                        currentSites.addAll(websites)
+                        editor.putStringSet("CUSTOM_SITES", currentSites)
+                    }
+                    if (keywords.isNotEmpty()) {
+                        val currentKeywords = sharedPrefs.getStringSet("CUSTOM_KEYWORDS", setOf())?.toMutableSet() ?: mutableSetOf()
+                        currentKeywords.addAll(keywords)
+                        editor.putStringSet("CUSTOM_KEYWORDS", currentKeywords)
+                    }
+                    if (apps.isNotEmpty()) {
+                        val currentApps = sharedPrefs.getStringSet("LOCKED_APPS", setOf())?.toMutableSet() ?: mutableSetOf()
+                        currentApps.addAll(apps)
+                        editor.putStringSet("LOCKED_APPS", currentApps)
+                    }
+                    
+                    editor.apply()
+                    
+                    Toast.makeText(context, "Imported ${websites.size} sites, ${keywords.size} keywords, ${apps.size} apps successfully!", Toast.LENGTH_LONG).show()
+                    
+                    // Force restart the VPN
+                    startHalanoiVpn(context)
+                }
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error importing: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -372,6 +415,43 @@ fun HalanoiDashboard() {
         }
 
         Spacer(modifier = Modifier.height(24.dp))
+        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // --- BULK IMPORT SECTION ---
+        Card(
+            modifier = Modifier.fillMaxWidth(0.9f),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Bulk Import Settings 📥",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Select an export.txt file containing your websites, keywords, and apps to load them instantly.",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+                Button(
+                    onClick = {
+                        filePickerLauncher.launch(arrayOf("text/plain"))
+                    },
+                    modifier = Modifier.fillMaxWidth(0.9f)
+                ) {
+                    Text("Select export.txt")
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
         Button(
             onClick = {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/kavinmaranravi/HalanoiApp"))
@@ -427,4 +507,53 @@ fun HalanoiDashboard() {
 fun startHalanoiVpn(context: Context) {
     val intent = Intent(context, HalanoiVpnService::class.java)
     context.startService(intent)
+}
+
+fun parseSection(content: String, header: String): List<String> {
+    val lines = content.lines()
+    val result = mutableListOf<String>()
+    var inSection = false
+    for (line in lines) {
+        val trimmed = line.trim()
+        if (trimmed == header) {
+            inSection = true
+            continue
+        }
+        if (inSection) {
+            if (trimmed.startsWith("===")) {
+                break
+            }
+            if (trimmed.isNotEmpty()) {
+                var cleaned = trimmed
+                if (header.contains("WEBSITES")) {
+                    cleaned = cleaned.replace(Regex("^https?://"), "").replace(Regex("/$"), "")
+                }
+                if (cleaned.isNotEmpty()) {
+                    result.add(cleaned)
+                }
+            }
+        }
+    }
+    return result
+}
+
+fun parseKeywords(content: String): List<String> {
+    val lines = content.lines()
+    var inSection = false
+    for (line in lines) {
+        val trimmed = line.trim()
+        if (trimmed == "=== CUSTOM BLOCKED KEYWORDS ===") {
+            inSection = true
+            continue
+        }
+        if (inSection) {
+            if (trimmed.startsWith("===")) {
+                break
+            }
+            if (trimmed.isNotEmpty()) {
+                return trimmed.split(",").map { it.trim().lowercase() }.filter { it.isNotEmpty() }
+            }
+        }
+    }
+    return emptyList()
 }
