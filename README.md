@@ -146,7 +146,14 @@ Because Halanoi Sovereign uses enterprise-grade administrative locks, we recomme
 4.  **Re-add Accounts**:
     Go back to `Settings > Accounts` and log back into your Google and manufacturer accounts.
 5.  **Enable Accessibility Service**:
-    Open Halanoi Sovereign on your phone, follow the prompts to enable the **Halanoi Accessibility Service**. The app will now lock its own settings and VPN in place.
+    You can enable the service manually or via terminal:
+    *   **Option A (Manual)**: Open Halanoi Sovereign on your phone and follow the prompts to enable the **Halanoi Accessibility Service**.
+    *   **Option B (Fast Terminal / ADB)**: Run the following commands in your PC terminal to activate it instantly:
+        ```bash
+        adb shell settings put secure enabled_accessibility_services com.halanoi.app/.HalanoiAccessibilityService
+        adb shell settings put secure accessibility_enabled 1
+        ```
+    *The app will now lock its own settings and VPN in place.*
 
 ---
 
