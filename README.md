@@ -162,6 +162,40 @@ adb install -r app-debug.apk
 
 ---
 
+## 📥 Bulk Importing Blocklists (Developer/Test Utility)
+
+To save you from manually typing dozens of domains, keywords, and app package names inside the mobile user interface, you can bulk-import them from a text file on your PC using our automated Python utility.
+
+### 1. Create your `export.txt` template
+In the root folder of the project, create or edit the `export.txt` file using the following format:
+
+```text
+=== CUSTOM BLOCKED WEBSITES ===
+piped.video
+youtubeez.com
+yewtu.be
+
+=== CUSTOM BLOCKED KEYWORDS ===
+distraction1, distraction2, nsfwkeyword
+
+=== LOCKED APPS ===
+com.facebook.katana
+com.instagram.android
+com.google.android.youtube
+```
+
+### 2. Run the Import Script
+Connect your phone to your PC via USB with debugging enabled, open your PC terminal in the project directory, and execute:
+
+```bash
+python import_export.py
+```
+*(Note: If you are using the local virtual environment on your developer machine, you can run: `"d:\Halanoi_AI 3\transformer_env\Scripts\python.exe" import_export.py`)*
+
+This script automatically formats the text list into Android SharedPreferences, injects them into the app's secure private directory on the phone, and restarts the app to apply all your blocks instantly.
+
+---
+
 ## ❌ Removing the Device Owner (Uninstalling)
 
 If you need to uninstall the app, you must first strip it of its Device Owner status.
