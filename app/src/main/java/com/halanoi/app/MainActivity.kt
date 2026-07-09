@@ -162,6 +162,7 @@ fun HalanoiDashboard() {
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
+            .imePadding()
             .verticalScroll(scrollState),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally

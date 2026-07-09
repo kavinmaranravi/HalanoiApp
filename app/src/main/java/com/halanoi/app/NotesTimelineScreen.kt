@@ -106,6 +106,7 @@ fun FullScreenNoteEditor(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .imePadding()
         ) {
             TextField(
                 value = title,
@@ -134,8 +135,7 @@ fun FullScreenNoteEditor(
                 placeholder = { Text("Start typing...") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState()),
+                    .weight(1f),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
@@ -197,7 +197,7 @@ fun NotesTimelineScreen(
             }
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.padding(paddingValues)) {
+        Box(modifier = Modifier.padding(paddingValues).imePadding()) {
             if (selectedTabIndex == 0) {
                 TasksAndTimelineTab(notes, events, onAddNote, onToggleNote, onDeleteNote, onDeleteEvent)
             } else {
