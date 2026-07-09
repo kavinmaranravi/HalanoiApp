@@ -190,7 +190,6 @@ Connect your phone to your PC via USB with debugging enabled, open your PC termi
 ```bash
 python import_export.py
 ```
-*(Note: If you are using the local virtual environment on your developer machine, you can run: `"d:\Halanoi_AI 3\transformer_env\Scripts\python.exe" import_export.py`)*
 
 This script automatically formats the text list into Android SharedPreferences, injects them into the app's secure private directory on the phone, and restarts the app to apply all your blocks instantly.
 
