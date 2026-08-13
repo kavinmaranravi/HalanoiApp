@@ -163,7 +163,7 @@ Because the app is protected by active uninstall guards, you cannot update it by
 
 Ensure your phone is connected to your PC with USB debugging, and run:
 ```bash
-adb install -r app-debug.apk
+adb install -r -t app-debug.apk
 ```
 *The `-r` flag tells Android to replace/reinstall the app in-place, keeping all your settings and keeping the Device Owner active.*
 
