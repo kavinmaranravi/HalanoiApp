@@ -255,25 +255,105 @@ class HalanoiVpnService : VpnService() {
         vpnInterface = null
     }
 }
-
 object HalanoiPacketEngine {
 
     // 🛡️ PERMANENT SAFESEARCH IP MAPPING 🛡️
-    // Maps search engine domains to their locked SafeSearch servers.
     private val safeSearchMap = mapOf(
         "google." to "216.239.38.120",      // forcesafesearch.google.com
         "youtube.com" to "216.239.38.120",  // restrict.youtube.com (Strict Mode)
         "bing.com" to "204.79.197.220",     // strict.bing.com
         "duckduckgo.com" to "107.20.240.232",// safe.duckduckgo.com
         "yandex." to "213.180.193.56",      // familysearch.yandex.ru
-        "brave.com" to "0.0.0.0",           // Blocked: No official DNS SafeSearch IP available yet
+        "brave.com" to "0.0.0.0",           // Blocked
         "yahoo." to "0.0.0.0",              // Sinkhole loophole
         "qwant.com" to "78.47.125.180"      // forcesafesearch.qwant.com
     )
 
+    // 🛡️ LOCAL DNS MEMORY CACHE 🛡️
+    object DnsCache {
+        private val cache = java.util.concurrent.ConcurrentHashMap<String, CacheEntry>()
+        private const val CACHE_DURATION_MS = 10 * 60 * 1000 // 10 minutes cache TTL
+
+        class CacheEntry(val ip: String, val timestamp: Long)
+
+        fun get(domain: String): String? {
+            val entry = cache[domain.lowercase()] ?: return null
+            if (System.currentTimeMillis() - entry.timestamp > CACHE_DURATION_MS) {
+                cache.remove(domain.lowercase())
+                return null
+            }
+            return entry.ip
+        }
+
+        fun put(domain: String, ip: String) {
+            cache[domain.lowercase()] = CacheEntry(ip, System.currentTimeMillis())
+        }
+    }
+
+    private fun parseIpFromDnsResponse(dnsResponse: ByteArray): String? {
+        try {
+            if (dnsResponse.size < 12) return null
+            val answerCount = ((dnsResponse[6].toInt() and 0xFF) shl 8) or (dnsResponse[7].toInt() and 0xFF)
+            if (answerCount <= 0) return null
+
+            var ptr = 12
+            // Skip the question section
+            while (ptr < dnsResponse.size && dnsResponse[ptr] > 0) {
+                ptr += (dnsResponse[ptr].toInt() and 0xFF) + 1
+            }
+            ptr++ // Skip the null byte
+            ptr += 4 // Skip QType (2) and QClass (2)
+
+            // Loop through answers
+            for (i in 0 until answerCount) {
+                if (ptr >= dnsResponse.size) break
+                // Skip the name label/pointer
+                if ((dnsResponse[ptr].toInt() and 0xC0) == 0xC0) {
+                    ptr += 2
+                } else {
+                    while (ptr < dnsResponse.size && dnsResponse[ptr] > 0) {
+                        ptr += (dnsResponse[ptr].toInt() and 0xFF) + 1
+                    }
+                    ptr++
+                }
+
+                if (ptr + 10 > dnsResponse.size) break
+
+                val type = ((dnsResponse[ptr].toInt() and 0xFF) shl 8) or (dnsResponse[ptr + 1].toInt() and 0xFF)
+                ptr += 2
+                ptr += 2 // Skip class
+                ptr += 4 // Skip TTL
+                val dataLen = ((dnsResponse[ptr].toInt() and 0xFF) shl 8) or (dnsResponse[ptr + 1].toInt() and 0xFF)
+                ptr += 2
+
+                if (type == 1 && dataLen == 4) { // IPv4 A Record
+                    if (ptr + 4 <= dnsResponse.size) {
+                        return "${dnsResponse[ptr].toInt() and 0xFF}.${dnsResponse[ptr + 1].toInt() and 0xFF}.${dnsResponse[ptr + 2].toInt() and 0xFF}.${dnsResponse[ptr + 3].toInt() and 0xFF}"
+                    }
+                }
+                ptr += dataLen
+            }
+        } catch (_: Exception) {
+            // Fallback
+        }
+        return null
+    }
+
+    private fun writeRawDnsReply(requestPacket: ByteArray, ipHeaderLength: Int, dnsResponsePayload: ByteArray, outputStream: FileOutputStream) {
+        val udpStart = ipHeaderLength
+        val dnsStart = udpStart + 8
+        val responseSize = dnsStart + dnsResponsePayload.size
+        val reply = ByteArray(responseSize)
+        
+        System.arraycopy(requestPacket, 0, reply, 0, dnsStart)
+        swapIpAndPorts(reply, udpStart)
+        System.arraycopy(dnsResponsePayload, 0, reply, dnsStart, dnsResponsePayload.size)
+        
+        finalizeAndWritePacket(reply, responseSize, ipHeaderLength, udpStart, outputStream)
+    }
+
     fun handleDnsRequest(vpnService: VpnService, packet: ByteArray, length: Int, ipHeaderLength: Int, outputStream: FileOutputStream, customBlockedSites: List<String>) {
         try {
-            // Trigger instant redirect if accessibility is disabled
             if (vpnService is HalanoiVpnService) {
                 vpnService.forceImmediateRedirect()
             }
@@ -293,26 +373,20 @@ object HalanoiPacketEngine {
             }
             domain = domain.dropLast(1)
             
-            // 🎯 CRITICAL FIX: Find exactly where the DNS Question ends (Null byte + 2 bytes Type + 2 bytes Class)
             val questionEnd = i + 5 
-
-            // Extract the DNS Query Type (A = 1, AAAA = 28)
             val qType = ((packet[i + 1].toInt() and 0xFF) shl 8) or (packet[i + 2].toInt() and 0xFF)
 
-            // If it's an IPv6 query, cleanly return an empty response immediately to force IPv4
             if (qType != 1) {
                 sendDnsReply(packet, questionEnd, ipHeaderLength, "0.0.0.0", qType, outputStream)
                 return
             }
 
-            // 🔥 BREAK THE INFINITE LOOP: Short-circuit Cloudflare lookups instantly
             if (domain.contains("cloudflare-dns.com", ignoreCase = true)) {
                 sendDnsReply(packet, questionEnd, ipHeaderLength, "1.1.1.3", qType, outputStream)
                 return
             }
 
             val blockedWebsites = mutableListOf(
-
                 "twitter.com", "x.com", "instagram.com", "facebook.com", "meta.com", "tiktok.com",
                 "netflix.com", "reddit.com", "primevideo.com", "twitch.tv", "hulu.com", "disneyplus.com",
                 "pinterest.com", "pinimg.com", "tumblr.com", "flickr.com", "deviantart.com", "imgur.com", "vsco.co", "onlyfans.com", "fansly.com"
@@ -324,10 +398,8 @@ object HalanoiPacketEngine {
 
             if (isBlocked) {
                 Log.d("HalanoiVPN", "🚫 SINKHOLE: $domain")
-                resolvedIp = "0.0.0.0"
+                sendDnsReply(packet, questionEnd, ipHeaderLength, "0.0.0.0", qType, outputStream)
             } else {
-                
-                // 🛡️ STEP 1: CHECK FOR SAFESEARCH FORCING 🛡️
                 var forcedSafeSearchIp: String? = null
                 for ((engine, ip) in safeSearchMap) {
                     if (domain.contains(engine, ignoreCase = true) && !domain.contains("firebase")) {
@@ -338,45 +410,50 @@ object HalanoiPacketEngine {
 
                 if (forcedSafeSearchIp != null) {
                     Log.d("HalanoiVPN", "🛡️ FORCING SAFESEARCH: $domain -> $forcedSafeSearchIp")
-                    resolvedIp = forcedSafeSearchIp
+                    sendDnsReply(packet, questionEnd, ipHeaderLength, forcedSafeSearchIp, qType, outputStream)
                 } else {
-                    // 🛡️ STEP 2: CLOUDFLARE FAMILY SHIELD FOR EVERYTHING ELSE WITH ROBUST NATIVE FALLBACK 🛡️
-                    try {
-                        val workerUrl = "https://family.cloudflare-dns.com/dns-query?name=$domain&type=A"
-                        val url = URL(workerUrl)
-                        val connection = url.openConnection() as HttpURLConnection
-                        
-                        connection.requestMethod = "GET"
-                        connection.setRequestProperty("Accept", "application/dns-json")
-                        connection.connectTimeout = 1200 
-                        connection.readTimeout = 1200    
+                    val cachedIp = DnsCache.get(domain)
+                    if (cachedIp != null) {
+                        sendDnsReply(packet, questionEnd, ipHeaderLength, cachedIp, qType, outputStream)
+                    } else {
+                        // Forward raw query via UDP to Cloudflare Family (1.1.1.3)
+                        var socket: java.net.DatagramSocket? = null
+                        try {
+                            val dnsPayloadLength = packet.size - dnsStart
+                            val dnsQueryData = ByteArray(dnsPayloadLength)
+                            System.arraycopy(packet, dnsStart, dnsQueryData, 0, dnsPayloadLength)
 
-                        val response = connection.inputStream.bufferedReader().readText()
-                        val jsonObject = JSONObject(response)
-                        
-                        val answers = jsonObject.optJSONArray("Answer")
-                        if (answers != null && answers.length() > 0) {
-                            for (k in 0 until answers.length()) {
-                                val answer = answers.getJSONObject(k)
-                                if (answer.optInt("type") == 1) { 
-                                    resolvedIp = answer.getString("data")
-                                    break
-                                }
+                            socket = java.net.DatagramSocket()
+                            socket.soTimeout = 10000 // 10 seconds timeout!
+                            val dnsServer = java.net.InetAddress.getByName("1.1.1.3")
+                            val sendPacket = java.net.DatagramPacket(dnsQueryData, dnsPayloadLength, dnsServer, 53)
+                            socket.send(sendPacket)
+
+                            val receiveBuffer = ByteArray(2048)
+                            val receivePacket = java.net.DatagramPacket(receiveBuffer, receiveBuffer.size)
+                            socket.receive(receivePacket)
+
+                            val responseLength = receivePacket.length
+                            val responseData = ByteArray(responseLength)
+                            System.arraycopy(receiveBuffer, 0, responseData, 0, responseLength)
+
+                            val parsedIp = parseIpFromDnsResponse(responseData)
+                            if (parsedIp != null) {
+                                DnsCache.put(domain, parsedIp)
                             }
+
+                            writeRawDnsReply(packet, ipHeaderLength, responseData, outputStream)
+                        } catch (e: Exception) {
+                            Log.e("HalanoiVPN", "UDP DNS failed for $domain. Fail-safe: Blocking to prevent bypass: ${e.message}")
+                            sendDnsReply(packet, questionEnd, ipHeaderLength, "0.0.0.0", qType, outputStream)
+                        } finally {
+                            try { socket?.close() } catch (_: Exception) {}
                         }
-                    } catch (e: Exception) {
-                        Log.e("HalanoiVPN", "DoH failed for $domain. Fail-safe: Blocking to prevent bypass.")
-                        // BULLETPROOF FIX: If we can't resolve securely via Cloudflare Family, 
-                        // we block the request. This prevents the "native DNS" loophole.
-                        resolvedIp = "0.0.0.0"
                     }
                 }
             }
-            
-            sendDnsReply(packet, questionEnd, ipHeaderLength, resolvedIp, qType, outputStream)
-
         } catch (e: Exception) {
-            // Drop silently on error or timeout
+            // Drop silently on error
         }
     }
 
