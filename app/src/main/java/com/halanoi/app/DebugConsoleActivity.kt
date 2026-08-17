@@ -16,6 +16,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -82,12 +84,11 @@ fun DebugConsoleScreen(onBack: () -> Unit) {
             TopAppBar(
                 title = { Text("Developer Debug Console", fontWeight = FontWeight.Bold, fontSize = 20.sp) },
                 navigationIcon = {
-                    Button(
-                        onClick = onBack,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.onBackground),
-                        contentPadding = PaddingValues(horizontal = 12.dp)
-                    ) {
-                        Text("← Back", fontWeight = FontWeight.Bold)
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back"
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
