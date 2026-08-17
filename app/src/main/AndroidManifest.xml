@@ -52,6 +52,12 @@
             android:theme="@style/Theme.Halanoi"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity
+            android:name=".DebugConsoleActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Halanoi"
+            android:windowSoftInputMode="adjustResize" />
+
         <service
             android:name=".HalanoiAccessibilityService"
             android:exported="true"

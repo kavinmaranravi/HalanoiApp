@@ -468,146 +468,17 @@ fun HalanoiDashboard() {
         val isDebuggable = (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
         if (isDebuggable) {
             Spacer(modifier = Modifier.height(24.dp))
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-            Spacer(modifier = Modifier.height(16.dp))
-
-            var showDebugSection by remember { mutableStateOf(false) }
-            
-            Card(
-                modifier = Modifier.fillMaxWidth(0.9f),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.4f))
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Developer Debug Dashboard ⚙️",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer
-                        )
-                        Button(
-                            onClick = { showDebugSection = !showDebugSection },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
-                        ) {
-                            Text(if (showDebugSection) "Hide" else "Show")
-                        }
-                    }
-
-                    if (showDebugSection) {
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        val customSites = sharedPrefs.getStringSet("CUSTOM_SITES", setOf())?.toList()?.sorted() ?: emptyList()
-                        val customKeywords = sharedPrefs.getStringSet("CUSTOM_KEYWORDS", setOf())?.toList()?.sorted() ?: emptyList()
-
-                        Text("Blocked Websites (${customSites.size}):", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        if (customSites.isEmpty()) {
-                            Text("None", fontSize = 12.sp, color = Color.Gray)
-                        } else {
-                            Card(
-                                modifier = Modifier.fillMaxWidth().height(100.dp).padding(vertical = 4.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.05f))
-                            ) {
-                                Column(
-                                    modifier = Modifier.padding(8.dp).verticalScroll(rememberScrollState())
-                                ) {
-                                    customSites.forEach { site ->
-                                        Text("• $site", fontSize = 12.sp)
-                                    }
-                                }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Text("Blocked Keywords (${customKeywords.size}):", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        if (customKeywords.isEmpty()) {
-                            Text("None", fontSize = 12.sp, color = Color.Gray)
-                        } else {
-                            Card(
-                                modifier = Modifier.fillMaxWidth().height(100.dp).padding(vertical = 4.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.05f))
-                            ) {
-                                Column(
-                                    modifier = Modifier.padding(8.dp).verticalScroll(rememberScrollState())
-                                ) {
-                                    customKeywords.forEach { keyword ->
-                                        Text("• $keyword", fontSize = 12.sp)
-                                    }
-                                }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-                        HorizontalDivider()
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        var liveLogs by remember { mutableStateOf(AppLogManager.getLogs()) }
-                        
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("Interactive Logs Console:", fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            Button(
-                                onClick = { liveLogs = AppLogManager.getLogs() },
-                                modifier = Modifier.height(32.dp),
-                                contentPadding = PaddingValues(horizontal = 8.dp)
-                            ) {
-                                Text("Refresh 🔄", fontSize = 11.sp)
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Card(
-                            modifier = Modifier.fillMaxWidth().height(180.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.Black)
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(8.dp).verticalScroll(rememberScrollState())
-                            ) {
-                                if (liveLogs.isEmpty()) {
-                                    Text("Waiting for logs... Try browsing websites on your phone.", color = Color.Green, fontSize = 11.sp)
-                                } else {
-                                    liveLogs.forEach { logLine ->
-                                        Text(logLine, color = Color.Green, fontSize = 11.sp)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = {
-                    try {
-                        dpm.setUninstallBlocked(adminComponent, context.packageName, false)
-                        dpm.clearUserRestriction(adminComponent, "no_config_accessibility")
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            dpm.clearUserRestriction(adminComponent, UserManager.DISALLOW_FACTORY_RESET)
-                            dpm.clearUserRestriction(adminComponent, UserManager.DISALLOW_INSTALL_UNKNOWN_SOURCES)
-                        }
-                        dpm.clearDeviceOwnerApp(context.packageName)
-                        Toast.makeText(context, "Device Owner Deactivated successfully! 🎉", Toast.LENGTH_LONG).show()
-                    } catch (e: Exception) {
-                        Toast.makeText(context, "Deactivation failed: ${e.message}", Toast.LENGTH_LONG).show()
-                    }
+                    val intent = Intent(context, DebugConsoleActivity::class.java)
+                    context.startActivity(intent)
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary),
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
                     .height(48.dp)
             ) {
-                Text("Deactivate Device Owner 🔓", color = Color.White, fontSize = 14.sp)
+                Text("Open Developer Console ⚙️", color = Color.White, fontSize = 14.sp)
             }
         }
 
