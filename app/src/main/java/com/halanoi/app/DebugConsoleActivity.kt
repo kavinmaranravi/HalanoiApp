@@ -55,6 +55,15 @@ fun DebugConsoleScreen(onBack: () -> Unit) {
 
     var showDeactivateDialog by remember { mutableStateOf(false) }
     var liveLogs by remember { mutableStateOf(AppLogManager.getLogs()) }
+    var isVpnActive by remember { mutableStateOf(false) }
+
+    // Check if the service is running when this screen opens or refreshes
+    LaunchedEffect(liveLogs) {
+        val manager = context.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+        isVpnActive = manager.getRunningServices(Integer.MAX_VALUE).any { 
+            HalanoiVpnService::class.java.name == it.service.className 
+        }
+    }
 
     val customSites = remember {
         mutableStateListOf<String>().apply {
@@ -96,7 +105,15 @@ fun DebugConsoleScreen(onBack: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // Section: Custom Blocked Websites
+            val systemBlockedWebsites = remember {
+                listOf(
+                    "twitter.com", "x.com", "instagram.com", "facebook.com", "meta.com", "tiktok.com",
+                    "netflix.com", "reddit.com", "primevideo.com", "twitch.tv", "hulu.com", "disneyplus.com",
+                    "pinterest.com", "pinimg.com", "tumblr.com", "flickr.com", "deviantart.com", "imgur.com", "vsco.co", "onlyfans.com", "fansly.com"
+                ).sorted()
+            }
+
+            // Section: Blocked Websites
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -104,26 +121,25 @@ fun DebugConsoleScreen(onBack: () -> Unit) {
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Blocked Websites (${customSites.size})",
+                        text = "Blocked Websites (${customSites.size + systemBlockedWebsites.size})",
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    if (customSites.isEmpty()) {
-                        Text("No custom websites added.", fontSize = 13.sp, color = Color.Gray)
-                    } else {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(max = 150.dp)
-                                .verticalScroll(rememberScrollState())
-                        ) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 200.dp)
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        if (customSites.isNotEmpty()) {
+                            Text("Custom Blocks:", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = MaterialTheme.colorScheme.primary)
                             customSites.forEach { site ->
                                 Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 4.dp),
+                                    modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
@@ -144,12 +160,30 @@ fun DebugConsoleScreen(onBack: () -> Unit) {
                                     }
                                 }
                             }
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                        }
+
+                        Text("System Defaults (Permanent):", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = Color.Gray)
+                        systemBlockedWebsites.forEach { site ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("• $site", fontSize = 13.sp, color = Color.Gray)
+                                Card(
+                                    colors = CardDefaults.cardColors(containerColor = Color.LightGray.copy(alpha = 0.2f)),
+                                    shape = RoundedCornerShape(4.dp)
+                                ) {
+                                    Text("System", fontSize = 9.sp, color = Color.Gray, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                                }
+                            }
                         }
                     }
                 }
             }
 
-            // Section: Custom Blocked Keywords
+            // Section: Blocked Keywords
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -157,26 +191,25 @@ fun DebugConsoleScreen(onBack: () -> Unit) {
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Blocked Keywords (${customKeywords.size})",
+                        text = "Blocked Keywords & Topics",
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    if (customKeywords.isEmpty()) {
-                        Text("No custom keywords added.", fontSize = 13.sp, color = Color.Gray)
-                    } else {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(max = 150.dp)
-                                .verticalScroll(rememberScrollState())
-                        ) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 200.dp)
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        if (customKeywords.isNotEmpty()) {
+                            Text("Custom Keywords:", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = MaterialTheme.colorScheme.primary)
                             customKeywords.forEach { keyword ->
                                 Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 4.dp),
+                                    modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
@@ -195,6 +228,24 @@ fun DebugConsoleScreen(onBack: () -> Unit) {
                                     ) {
                                         Text("Delete", fontSize = 11.sp)
                                     }
+                                }
+                            }
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                        }
+
+                        Text("System AI Vision Scanner Topics:", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = Color.Gray)
+                        listOf("NSFW (Adult content/Porn)", "Sports (News/Scores)", "Entertainment (Gaming/Movies)", "Politics (Debates)").forEach { category ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("• $category", fontSize = 13.sp, color = Color.Gray)
+                                Card(
+                                    colors = CardDefaults.cardColors(containerColor = Color.LightGray.copy(alpha = 0.2f)),
+                                    shape = RoundedCornerShape(4.dp)
+                                ) {
+                                    Text("AI Brain", fontSize = 9.sp, color = Color.Gray, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
                                 }
                             }
                         }
@@ -240,7 +291,14 @@ fun DebugConsoleScreen(onBack: () -> Unit) {
                                 .fillMaxSize()
                                 .verticalScroll(logScrollState)
                         ) {
-                            if (liveLogs.isEmpty()) {
+                            if (!isVpnActive) {
+                                Text(
+                                    text = "⚠️ VPN Network Shield is NOT Active!\n\nPlease go back to the main screen and click \"Activate Network Shield 🛡️\" to start the VPN. Once active, browser DNS queries will record logs here.",
+                                    color = Color(0xFFFBBF24), // Orange/yellow alert
+                                    fontSize = 12.sp,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            } else if (liveLogs.isEmpty()) {
                                 Text(
                                     text = "Console active. Open Chrome/Websites to see live logs.",
                                     color = Color(0xFF10B981),
