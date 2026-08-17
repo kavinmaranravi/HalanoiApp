@@ -473,12 +473,15 @@ fun HalanoiDashboard() {
                     val intent = Intent(context, DebugConsoleActivity::class.java)
                     context.startActivity(intent)
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.tertiary,
+                    contentColor = MaterialTheme.colorScheme.onTertiary
+                ),
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
                     .height(48.dp)
             ) {
-                Text("Open Developer Console ⚙️", color = Color.White, fontSize = 14.sp)
+                Text("Open Developer Console ⚙️", fontSize = 14.sp)
             }
         }
 
