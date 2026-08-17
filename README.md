@@ -131,11 +131,11 @@ Because Halanoi Sovereign uses enterprise-grade administrative locks, we recomme
     ./gradlew installDebug
     ```
     > [!NOTE]
-    > **Developer Signature & `-t` Flag**: Because these builds are signed locally with a developer debug signature (and not a Google Play production key), Android treats them as test builds. When installing manually via ADB, you **MUST** add the `-t` flag:
+    > **Developer Signature & `-t` / `-i` Flags**: Because these builds are signed locally with a developer debug signature (and not a Google Play production key), Android treats them as test builds. When installing manually via ADB, you **MUST** add the `-t` (test) flag, and the `-i com.android.vending` (Play Store installer spoofing) flag to prevent GPay/Paytm from blocking transactions due to sideloaded accessibility apps:
     > ```bash
-    > adb install -t app-debug.apk
+    > adb install -r -t -i com.android.vending app/build/outputs/apk/debug/app-debug.apk
     > # or for the self-compiled release build:
-    > adb install -t app-release.apk
+    > adb install -r -t -i com.android.vending app/build/outputs/apk/release/app-release.apk
     > ```
 3.  **Set the Device Owner via ADB**:
     Connect your phone to your PC via USB and run this command in your PC terminal:
@@ -163,7 +163,7 @@ Because the app is protected by active uninstall guards, you cannot update it by
 
 Ensure your phone is connected to your PC with USB debugging, and run:
 ```bash
-adb install -r -t app-debug.apk
+adb install -r -t -i com.android.vending app/build/outputs/apk/debug/app-debug.apk
 ```
 *The `-r` flag tells Android to replace/reinstall the app in-place, keeping all your settings and keeping the Device Owner active.*
 
