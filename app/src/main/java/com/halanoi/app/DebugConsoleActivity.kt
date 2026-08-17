@@ -109,7 +109,7 @@ fun DebugConsoleScreen(onBack: () -> Unit) {
                 listOf(
                     "twitter.com", "x.com", "instagram.com", "facebook.com", "meta.com", "tiktok.com",
                     "netflix.com", "reddit.com", "primevideo.com", "twitch.tv", "hulu.com", "disneyplus.com",
-                    "pinterest.com", "pinimg.com", "tumblr.com", "flickr.com", "deviantart.com", "imgur.com", "vsco.co", "onlyfans.com", "fansly.com"
+                    "pinterest.com", "pinimg.com", "tumblr.com", "flickr.com", "deviantart.com", "imgur.com", "vsco.co"
                 ).sorted()
             }
 
@@ -165,16 +165,12 @@ fun DebugConsoleScreen(onBack: () -> Unit) {
 
                         Text("System Defaults (Permanent):", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = Color.Gray)
                         systemBlockedWebsites.forEach { site ->
-                            val displayName = when (site) {
-                                "onlyfans.com", "fansly.com" -> "[NSFW / Adult Content Blocked]"
-                                else -> site
-                            }
                             Row(
                                 modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("• $displayName", fontSize = 13.sp, color = Color.Gray)
+                                Text("• $site", fontSize = 13.sp, color = Color.Gray)
                                 Card(
                                     colors = CardDefaults.cardColors(containerColor = Color.LightGray.copy(alpha = 0.2f)),
                                     shape = RoundedCornerShape(4.dp)
