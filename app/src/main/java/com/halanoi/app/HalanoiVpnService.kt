@@ -255,6 +255,21 @@ class HalanoiVpnService : VpnService() {
         vpnInterface = null
     }
 }
+
+object AppLogManager {
+    private val logLines = java.util.concurrent.CopyOnWriteArrayList<String>()
+    
+    fun addLog(line: String) {
+        val timestamp = java.text.SimpleDateFormat("HH:mm:ss.SSS", java.util.Locale.getDefault()).format(java.util.Date())
+        logLines.add("[$timestamp] $line")
+        if (logLines.size > 80) { // Keep last 80 lines
+            logLines.removeAt(0)
+        }
+    }
+    
+    fun getLogs(): List<String> = logLines.toList()
+}
+
 object HalanoiPacketEngine {
 
     // 🛡️ PERMANENT SAFESEARCH IP MAPPING 🛡️
@@ -398,6 +413,7 @@ object HalanoiPacketEngine {
 
             if (isBlocked) {
                 Log.d("HalanoiVPN", "🚫 SINKHOLE: $domain")
+                AppLogManager.addLog("🚫 SINKHOLE: $domain")
                 sendDnsReply(packet, questionEnd, ipHeaderLength, "0.0.0.0", qType, outputStream)
             } else {
                 var forcedSafeSearchIp: String? = null
@@ -410,10 +426,12 @@ object HalanoiPacketEngine {
 
                 if (forcedSafeSearchIp != null) {
                     Log.d("HalanoiVPN", "🛡️ FORCING SAFESEARCH: $domain -> $forcedSafeSearchIp")
+                    AppLogManager.addLog("🛡️ SAFESEARCH: $domain -> $forcedSafeSearchIp")
                     sendDnsReply(packet, questionEnd, ipHeaderLength, forcedSafeSearchIp, qType, outputStream)
                 } else {
                     val cachedIp = DnsCache.get(domain)
                     if (cachedIp != null) {
+                        AppLogManager.addLog("⚡ CACHE HIT: $domain -> $cachedIp")
                         sendDnsReply(packet, questionEnd, ipHeaderLength, cachedIp, qType, outputStream)
                     } else {
                         // Forward raw query via UDP to Cloudflare Family (1.1.1.3)
@@ -440,11 +458,15 @@ object HalanoiPacketEngine {
                             val parsedIp = parseIpFromDnsResponse(responseData)
                             if (parsedIp != null) {
                                 DnsCache.put(domain, parsedIp)
+                                AppLogManager.addLog("🌐 RESOLVED: $domain -> $parsedIp (via Cloudflare)")
+                            } else {
+                                AppLogManager.addLog("🌐 RESOLVED: $domain (via Cloudflare)")
                             }
 
                             writeRawDnsReply(packet, ipHeaderLength, responseData, outputStream)
                         } catch (e: Exception) {
                             Log.e("HalanoiVPN", "UDP DNS failed for $domain. Fail-safe: Blocking to prevent bypass: ${e.message}")
+                            AppLogManager.addLog("⚠️ UDP DNS failed for $domain: ${e.message}. Locked.")
                             sendDnsReply(packet, questionEnd, ipHeaderLength, "0.0.0.0", qType, outputStream)
                         } finally {
                             try { socket?.close() } catch (_: Exception) {}
