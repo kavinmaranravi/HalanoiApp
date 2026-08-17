@@ -299,7 +299,9 @@ class HalanoiAccessibilityService : AccessibilityService() {
     }
 
     private fun analyzeTextForDistractions(text: String, packageName: String) {
+        val croppedText = if (text.length > 40) text.take(40) + "..." else text
         Log.d(TAG, "🔍 SCRAPED TEXT: '$text'")
+        AppLogManager.addLog("🔍 SCRAPED: \"$croppedText\"")
         val lowerText = text.lowercase()
         val sharedPrefs = getSharedPreferences("HalanoiVault", Context.MODE_PRIVATE)
         val customKeywords = sharedPrefs.getStringSet("CUSTOM_KEYWORDS", setOf())?.toList() ?: emptyList()
@@ -308,6 +310,7 @@ class HalanoiAccessibilityService : AccessibilityService() {
         val matchedWord = allKeywords.find { it.isNotBlank() && lowerText.contains(it.lowercase()) }
         if (matchedWord != null) {
             isOnCooldown = true
+            AppLogManager.addLog("🚨 KEYWORD BLOCK: '$matchedWord' matched in \"$croppedText\"")
             serviceScope.launch(Dispatchers.Main) {
                 launchBlockScreen("Matched keyword: '$matchedWord'", packageName)
             }
@@ -327,8 +330,10 @@ class HalanoiAccessibilityService : AccessibilityService() {
                         val topLabel = topResult.key
                         val topScore = topResult.value
                         Log.d(TAG, "AI Analyzed: '$text' -> $topLabel ($topScore)")
+                        AppLogManager.addLog("🧠 AI RESULT: \"$croppedText\" -> $topLabel ($topScore)")
                         if (DANGER_LABELS.contains(topLabel) && topScore >= MIN_CONFIDENCE_THRESHOLD) {
                             isOnCooldown = true
+                            AppLogManager.addLog("🚨 AI BLOCK: Triggered by \"$croppedText\" (Label: $topLabel)")
                             withContext(Dispatchers.Main) {
                                 launchBlockScreen("The AI caught you looking at: $text (Label: $topLabel)", packageName)
                             }
