@@ -21,6 +21,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -65,6 +66,7 @@ fun HalanoiDashboard() {
     
     var customSiteUrl by remember { mutableStateOf("") }
     var customKeyword by remember { mutableStateOf("") }
+    var isAccessibilityEnabled by remember { mutableStateOf(true) }
 
     // THE FIX: Automatically ask for Notification Permissions on Android 13+
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
@@ -83,16 +85,14 @@ fun HalanoiDashboard() {
             notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
         
-        // Check if we are Device Owner
+        // Check if we are Device Owner and load system policies
         if (dpm.isDeviceOwnerApp(context.packageName)) {
             Log.d("HalanoiAdmin", "✅ DEVICE OWNER STATUS CONFIRMED.")
-            Toast.makeText(context, "Shield Mode: Device Owner (Max Security)", Toast.LENGTH_SHORT).show()
             try {
                 // Hides uninstall button and locks the app as a system component
                 dpm.setUninstallBlocked(adminComponent, context.packageName, true)
 
                 // 🚫 freeze the accessibility settings (prevent disabling accessibility service)
-                // UserManager.DISALLOW_CONFIG_ACCESSIBILITY corresponds to the string "no_config_accessibility"
                 dpm.addUserRestriction(adminComponent, "no_config_accessibility")
 
                 // 🚫 Disable Factory Reset (Grey out factory reset in settings)
@@ -123,12 +123,11 @@ fun HalanoiDashboard() {
                 }
 
                 // 🛡️ Lock VPN - force always-on VPN package
-                // Lockdown parameter is set to FALSE to allow internet to flow while VPN is active.
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     try {
                         dpm.setAlwaysOnVpnPackage(adminComponent, context.packageName, false)
                         dpm.addUserRestriction(adminComponent, UserManager.DISALLOW_CONFIG_VPN)
-                        Log.d("HalanoiAdmin", "🔒 Always-On VPN enforced. VPN Settings greyed out. Internet should work.")
+                        Log.d("HalanoiAdmin", "🔒 Always-On VPN enforced. VPN Settings greyed out.")
                     } catch (e: Exception) {
                         Log.e("HalanoiAdmin", "Failed to set Always-On VPN/Restriction: ${e.message}")
                     }
@@ -137,14 +136,24 @@ fun HalanoiDashboard() {
                 // Automatically activate VPN Shield if we are Device Owner
                 startHalanoiVpn(context)
 
-                // Automatically enforce browser shield on boot/load
-                BrowserHelper.applyBrowserBlockMode(context, browserBlockMode)
             } catch (e: SecurityException) {
                 Log.e("HalanoiAdmin", "Failed to secure app uninstallation/restrictions: ${e.message}")
             }
         } else {
             Log.e("HalanoiAdmin", "❌ NOT DEVICE OWNER. Grey-out features will not work.")
             Toast.makeText(context, "Shield Mode: Active Admin Only (Reduced Security)", Toast.LENGTH_LONG).show()
+        }
+
+        // Dynamic status check loop for accessibility service running inside LaunchedEffect coroutine context
+        while(true) {
+            val expectedComponent = ComponentName(context, HalanoiAccessibilityService::class.java)
+            val enabledServices = Settings.Secure.getString(
+                context.contentResolver,
+                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+            ) ?: ""
+            isAccessibilityEnabled = enabledServices.contains(expectedComponent.flattenToString()) || 
+                                     enabledServices.contains(expectedComponent.flattenToShortString())
+            kotlinx.coroutines.delay(1500)
         }
     }
 
@@ -216,6 +225,53 @@ fun HalanoiDashboard() {
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold
         )
+
+        if (!isAccessibilityEnabled) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .padding(vertical = 4.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF3C7))
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = "⚠️ Accessibility Shield Inactive",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        color = Color(0xFF92400E)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "To monitor screen text, block distractions, and run TFLite AI scans, please enable the Accessibility Shield in Settings.",
+                        fontSize = 12.sp,
+                        color = Color(0xFFB45309),
+                        lineHeight = 16.sp
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Button(
+                        onClick = {
+                            try {
+                                val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                }
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Could not open settings: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD97706)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Enable Shield", color = Color.White)
+                    }
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(32.dp))
 

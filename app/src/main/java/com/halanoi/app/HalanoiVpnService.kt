@@ -116,44 +116,68 @@ class HalanoiVpnService : VpnService() {
         return false
     }
 
+    private var lastNotificationTime = 0L
+
+    private fun postAccessibilityAlertNotification() {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastNotificationTime < 30000L) return // Post at most once every 30 seconds
+        lastNotificationTime = currentTime
+
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+        val channelId = "halanoi_accessibility_alerts"
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = android.app.NotificationChannel(
+                channelId,
+                "Focus Shield Status Alerts",
+                android.app.NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Notifies when background focus protection shield is disabled."
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val settingsIntent = Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        }
+        val pendingIntent = android.app.PendingIntent.getActivity(
+            this,
+            1001,
+            settingsIntent,
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) android.app.PendingIntent.FLAG_IMMUTABLE else 0
+        )
+
+        val notification = androidx.core.app.NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(android.R.drawable.stat_sys_warning)
+            .setContentTitle("⚠️ Focus Shield Inactive")
+            .setContentText("Accessibility Service is disabled. Tap to re-enable and resume focus block screens.")
+            .setPriority(androidx.core.app.NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .build()
+
+        notificationManager.notify(99, notification)
+    }
+
     private fun checkAndEnforceAccessibility() {
         if (!isAccessibilityServiceEnabled()) {
-            val currentTime = System.currentTimeMillis()
-            val inSettings = isSettingsInForeground()
-            
-            // If the user is in the Settings app, give them 8 seconds to toggle it.
-            // If they are in any other app, redirect them immediately (every 1 second)!
-            val cooldown = if (inSettings) 8000L else 1000L
-            
-            if (currentTime - lastRedirectTime > cooldown) {
-                lastRedirectTime = currentTime
-                Log.w("HalanoiVPN", "⚠️ Accessibility Service is DISABLED! Force-redirecting (cooldown: ${cooldown}ms)...")
-                
-                // 1. Try to self-heal (works on Android 12 and below)
-                val dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-                val adminComponent = ComponentName(this, HalanoiDeviceAdminReceiver::class.java)
-                if (dpm.isDeviceOwnerApp(packageName)) {
-                    try {
-                        val serviceComponent = "${packageName}/${HalanoiAccessibilityService::class.java.name}"
-                        dpm.setSecureSetting(adminComponent, android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES, serviceComponent)
-                        dpm.setSecureSetting(adminComponent, android.provider.Settings.Secure.ACCESSIBILITY_ENABLED, "1")
-                        Log.d("HalanoiVPN", "🔒 Self-healed Accessibility Service via Device Owner Secure Settings.")
-                    } catch (e: Exception) {
-                        Log.e("HalanoiVPN", "Self-healing failed (expected on Android 13+): ${e.message}")
-                    }
+            // 1. Try to self-heal (works on Android 12 and below)
+            val dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+            val adminComponent = ComponentName(this, HalanoiDeviceAdminReceiver::class.java)
+            if (dpm.isDeviceOwnerApp(packageName)) {
+                try {
+                    val serviceComponent = "${packageName}/${HalanoiAccessibilityService::class.java.name}"
+                    dpm.setSecureSetting(adminComponent, android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES, serviceComponent)
+                    dpm.setSecureSetting(adminComponent, android.provider.Settings.Secure.ACCESSIBILITY_ENABLED, "1")
+                    Log.d("HalanoiVPN", "🔒 Self-healed Accessibility Service via Device Owner Secure Settings.")
+                } catch (e: Exception) {
+                    Log.e("HalanoiVPN", "Self-healing failed (expected on Android 13+): ${e.message}")
                 }
+            }
 
-                // 2. Force redirect to settings
-                if (!isAccessibilityServiceEnabled()) {
-                    try {
-                        val intent = Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
-                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NO_HISTORY)
-                        }
-                        startActivity(intent)
-                    } catch (e: Exception) {
-                        Log.e("HalanoiVPN", "Failed to force redirect to accessibility settings: ${e.message}")
-                    }
-                }
+            // 2. If it is still disabled, post a user-friendly system notification (once every 30s)
+            if (!isAccessibilityServiceEnabled()) {
+                postAccessibilityAlertNotification()
             }
         }
     }
