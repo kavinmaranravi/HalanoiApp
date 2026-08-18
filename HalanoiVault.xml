@@ -1,0 +1,74 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <set name="CUSTOM_SITES">
+        <string>piped.video</string>
+        <string>tube.cadence.moe</string>
+        <string>inv.thepixora.com</string>
+        <string>invidious.io</string>
+        <string>blockaway.net</string>
+        <string>viewtube.io</string>
+        <string>yewtu.be</string>
+        <string>invidious.f5.si</string>
+        <string>youtubeez.com</string>
+        <string>piped.video</string>
+        <string>piped.adminforge.de</string>
+        <string>tube.cadence.moe</string>
+        <string>youtubeez.com</string>
+        <string>theoldreader.com</string>
+        <string>inv.nadeko.net</string>
+        <string>invidious.tiekoetter.com</string>
+        <string>poketube.fun</string>
+        <string>toogles.com</string>
+        <string>viewtube.io</string>
+        <string>croxyproxy.com</string>
+        <string>piped.mha.fi</string>
+        <string>inoreader.com</string>
+        <string>piped.projectsegfau.lt</string>
+        <string>yewtu.be</string>
+        <string>piped.video/trending?hl=en-in</string>
+        <string>invidious.nerdvpn.de</string>
+        <string>tamildhool.tech</string>
+        <string>inv.nadeko.net</string>
+        <string>feedly.com</string>
+        <string>youtube.com</string>
+        <string>inv.nadeko.net/feed/popular</string>
+        <string>tube.kuylar.dev</string>
+        <string>yt.chocolatemoo53.com</string>
+    </set>
+    <set name="CUSTOM_KEYWORDS">
+        <string>tamilserial</string>
+        <string>tamil serials</string>
+        <string>thunai</string>
+        <string>tamil dhool</string>
+        <string>ayanar</string>
+        <string>female</string>
+        <string>girl</string>
+        <string>women</string>
+        <string>ayanar thunai</string>
+        <string>fortnite</string>
+        <string>gta</string>
+        <string>bikini</string>
+        <string>pussy</string>
+        <string>dick</string>
+        <string>18+</string>
+        <string>hentai</string>
+        <string>brazzers</string>
+        <string>xvideo</string>
+        <string>pornstar</string>
+        <string>trailer</string>
+        <string>movie</string>
+        <string>actress</string>
+    </set>
+    <set name="LOCKED_APPS">
+        <string>com.block.juggle</string>
+        <string>com.google.android.apps.youtube.music</string>
+        <string>com.facebook.katana</string>
+        <string>com.spotify.music</string>
+        <string>com.jio.media.jiobeats</string>
+        <string>com.vivo.appstore</string>
+        <string>com.google.android.youtube</string>
+        <string>com.instagram.android</string>
+        <string>com.netflix.mediaclient</string>
+        <string>com.linkedin.android</string>
+    </set>
+</map>

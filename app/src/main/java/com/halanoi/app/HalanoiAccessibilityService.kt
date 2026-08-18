@@ -46,7 +46,7 @@ class HalanoiAccessibilityService : AccessibilityService() {
     private val forbiddenPhrases = emptyList<String>()
 
     private val blockedApps = listOf(
-        "com.twitter.android", "com.zhiliaoapp.musically", "com.android.vpndialogs",
+        "com.twitter.android", "com.zhiliaoapp.musically",
         "org.torproject.torbrowser", "org.torproject.torbrowser_alpha", "org.torproject.android",
         "com.ornet.browser", "com.opera.browser", "ch.grid.invizible", "com.brave.browser",
         "com.opera.mini.native", "com.instagram.android", "com.facebook.katana",
