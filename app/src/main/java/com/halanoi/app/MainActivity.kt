@@ -58,7 +58,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -67,6 +70,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.halanoi.app.ui.BrandIconHelper
+import com.halanoi.app.ui.SovereignAdminPolicyCard
 import com.halanoi.app.ui.WebsiteFavicon
 import com.halanoi.app.ui.theme.*
 import kotlinx.coroutines.Dispatchers
@@ -639,6 +643,10 @@ fun ShieldMasterTab(
             ) {
                 Text("Deactivate Device Owner (Debug Only) 🔓", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = DangerCrimson)
             }
+        } else {
+            // In Release Mode: Show Sovereign Lockdown & PC Deactivation Guide Card
+            Spacer(modifier = Modifier.height(14.dp))
+            SovereignAdminPolicyCard()
         }
 
         Spacer(modifier = Modifier.height(100.dp)) // Space for floating dock

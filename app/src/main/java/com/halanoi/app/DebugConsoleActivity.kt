@@ -42,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.halanoi.app.ui.BrandIconHelper
+import com.halanoi.app.ui.SovereignAdminPolicyCard
 import com.halanoi.app.ui.WebsiteFavicon
 import com.halanoi.app.ui.theme.*
 
@@ -316,6 +317,9 @@ fun DebugConsoleHubScreen(
                 ) {
                     Text("Deactivate Device Owner 🔓", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White)
                 }
+            } else {
+                Spacer(modifier = Modifier.height(14.dp))
+                SovereignAdminPolicyCard()
             }
 
             Spacer(modifier = Modifier.height(20.dp))
