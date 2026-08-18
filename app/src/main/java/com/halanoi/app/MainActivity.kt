@@ -131,6 +131,7 @@ fun HalanoiSpaApp(notesViewModel: NotesTimelineViewModel) {
     var browserBlockMode by remember { 
         mutableStateOf(sharedPrefs.getString("BROWSER_BLOCK_MODE", "STANDARD") ?: "STANDARD") 
     }
+    var showDeactivateDialog by remember { mutableStateOf(false) }
 
     // Shared sets
     val lockedAppsSet = remember {
@@ -265,6 +266,44 @@ fun HalanoiSpaApp(notesViewModel: NotesTimelineViewModel) {
         }
     }
 
+    if (showDeactivateDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeactivateDialog = false },
+            title = { Text("⚠️ Deactivate Device Owner?", fontWeight = FontWeight.Bold) },
+            text = { Text("Are you sure you want to deactivate Device Owner / Admin privileges? This will remove Sovereign protections.") },
+            confirmButton = {
+                Button(
+                    colors = ButtonDefaults.buttonColors(containerColor = DangerCrimson),
+                    onClick = {
+                        showDeactivateDialog = false
+                        try {
+                            if (dpm.isDeviceOwnerApp(context.packageName)) {
+                                dpm.clearDeviceOwnerApp(context.packageName)
+                                isDeviceOwner = false
+                                Toast.makeText(context, "Device Owner Deactivated.", Toast.LENGTH_LONG).show()
+                            } else if (dpm.isAdminActive(adminComponent)) {
+                                dpm.removeActiveAdmin(adminComponent)
+                                isDeviceOwner = false
+                                Toast.makeText(context, "Active Admin Removed.", Toast.LENGTH_LONG).show()
+                            } else {
+                                Toast.makeText(context, "Not currently an Active Admin or Device Owner.", Toast.LENGTH_SHORT).show()
+                            }
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "Deactivation failed: ${e.message}", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                ) {
+                    Text("Confirm Deactivate", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeactivateDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             if (!isFullScreenEditorActive) {
@@ -375,6 +414,9 @@ fun HalanoiSpaApp(notesViewModel: NotesTimelineViewModel) {
                                 context.startActivity(intent)
                             }
                         },
+                        onDeactivateDeviceOwner = {
+                            showDeactivateDialog = true
+                        },
                         onOpenAccessibilitySettings = {
                             try {
                                 val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
@@ -480,6 +522,7 @@ fun ShieldMasterTab(
     onBrowserModeChange: (String) -> Unit,
     onToggleMasterShield: () -> Unit,
     onEmergencyLock: () -> Unit,
+    onDeactivateDeviceOwner: () -> Unit = {},
     onOpenAccessibilitySettings: () -> Unit
 ) {
     val scrollState = rememberScrollState()
@@ -631,17 +674,17 @@ fun ShieldMasterTab(
             Text("Initiate Total Lockdown 🔒", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color.White)
         }
 
-        if (BuildConfig.DEBUG && isDeviceOwner) {
+        if (BuildConfig.DEBUG) {
             Spacer(modifier = Modifier.height(12.dp))
-            OutlinedButton(
-                onClick = onEmergencyLock, // Triggers deactivation / admin dialog
+            Button(
+                onClick = onDeactivateDeviceOwner,
+                colors = ButtonDefaults.buttonColors(containerColor = DangerCrimson),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, DangerCrimson.copy(alpha = 0.6f)),
+                    .height(52.dp),
                 shape = RoundedCornerShape(16.dp)
             ) {
-                Text("Deactivate Device Owner (Debug Only) 🔓", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = DangerCrimson)
+                Text("Deactivate Device Owner (Debug Only) 🔓", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White)
             }
         } else {
             // In Release Mode: Show Sovereign Lockdown & PC Deactivation Guide Card
