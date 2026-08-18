@@ -1,5 +1,6 @@
 package com.halanoi.app
 
+import com.halanoi.app.BuildConfig
 import android.Manifest
 import android.app.Activity
 import android.app.admin.DevicePolicyManager
@@ -384,9 +385,14 @@ fun HalanoiSpaApp(notesViewModel: NotesTimelineViewModel) {
                     SpaTab.VAULT -> EmbeddedAppVaultTab(
                         lockedAppsSet = lockedAppsSet,
                         onLockApp = { pkg ->
-                            if (!lockedAppsSet.contains(pkg)) {
+                            if (lockedAppsSet.contains(pkg)) {
+                                lockedAppsSet.remove(pkg)
+                                sharedPrefs.edit().putStringSet("LOCKED_APPS", lockedAppsSet.toSet()).apply()
+                                Toast.makeText(context, "App Unlocked 🔓", Toast.LENGTH_SHORT).show()
+                            } else {
                                 lockedAppsSet.add(pkg)
                                 sharedPrefs.edit().putStringSet("LOCKED_APPS", lockedAppsSet.toSet()).apply()
+                                Toast.makeText(context, "App Locked in Vault 🔒", Toast.LENGTH_SHORT).show()
                             }
                         }
                     )
@@ -621,6 +627,20 @@ fun ShieldMasterTab(
             Text("Initiate Total Lockdown 🔒", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color.White)
         }
 
+        if (BuildConfig.DEBUG && isDeviceOwner) {
+            Spacer(modifier = Modifier.height(12.dp))
+            OutlinedButton(
+                onClick = onEmergencyLock, // Triggers deactivation / admin dialog
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, DangerCrimson.copy(alpha = 0.6f)),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Text("Deactivate Device Owner (Debug Only) 🔓", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = DangerCrimson)
+            }
+        }
+
         Spacer(modifier = Modifier.height(100.dp)) // Space for floating dock
     }
 }
@@ -773,11 +793,18 @@ fun EmbeddedAppVaultTab(
         }
     }
 
-    val filteredApps = remember(installedApps, searchQuery, lockedAppsSet.toList()) {
+    val filteredApps = remember(installedApps, searchQuery) {
         if (searchQuery.isBlank()) installedApps
         else installedApps.filter {
             it.name.contains(searchQuery, ignoreCase = true) || it.packageName.contains(searchQuery, ignoreCase = true)
         }
+    }
+
+    val lockedApps = remember(filteredApps, lockedAppsSet.toList()) {
+        filteredApps.filter { lockedAppsSet.contains(it.packageName) }
+    }
+    val availableApps = remember(filteredApps, lockedAppsSet.toList()) {
+        filteredApps.filter { !lockedAppsSet.contains(it.packageName) }
     }
 
     Column(
@@ -825,13 +852,72 @@ fun EmbeddedAppVaultTab(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(bottom = 100.dp)
             ) {
-                items(filteredApps, key = { it.packageName }) { app ->
-                    val isLocked = lockedAppsSet.contains(app.packageName)
-                    AppVaultItemCard(
-                        app = app,
-                        isLocked = isLocked,
-                        onToggleLock = { onLockApp(app.packageName) }
-                    )
+                // Pinned Locked Apps Section
+                if (lockedApps.isNotEmpty()) {
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 4.dp, bottom = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Locked in Vault (${lockedApps.size})",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp,
+                                color = DangerCrimson
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = DangerCrimson.copy(alpha = 0.12f)
+                            ) {
+                                Text(
+                                    text = "RESTRICTED 🔒",
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = DangerCrimson,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    items(lockedApps, key = { "locked_" + it.packageName }) { app ->
+                        AppVaultItemCard(
+                            app = app,
+                            isLocked = true,
+                            onToggleLock = { onLockApp(app.packageName) }
+                        )
+                    }
+
+                    item {
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        )
+                    }
+                }
+
+                // Available / Unlocked Apps Section
+                if (availableApps.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = if (lockedApps.isNotEmpty()) "Available Apps (${availableApps.size})" else "Installed Apps (${availableApps.size})",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 2.dp, bottom = 2.dp)
+                        )
+                    }
+
+                    items(availableApps, key = { "available_" + it.packageName }) { app ->
+                        AppVaultItemCard(
+                            app = app,
+                            isLocked = false,
+                            onToggleLock = { onLockApp(app.packageName) }
+                        )
+                    }
                 }
             }
         }
@@ -1160,25 +1246,91 @@ fun FullScreenSitesManagerView(
             }
 
             if (customSites.isNotEmpty()) {
-                item {
-                    Text(
-                        text = "Your Custom Blocked Sites (${customSites.size})",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = CyberEmerald,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                }
-                items(customSites) { site ->
-                    val brand = BrandIconHelper.getWebsiteBrand(site)
-                    BrandWebsiteCard(
-                        domain = site,
-                        brandName = brand.displayName,
-                        emoji = brand.iconEmoji,
-                        category = brand.category,
-                        brandColor = brand.brandColor,
-                        onDelete = { onDeleteSite(site) }
-                    )
+                if (BuildConfig.DEBUG) {
+                    item {
+                        Text(
+                            text = "Your Custom Blocked Sites (${customSites.size})",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = CyberEmerald,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+                    items(customSites) { site ->
+                        val brand = BrandIconHelper.getWebsiteBrand(site)
+                        BrandWebsiteCard(
+                            domain = site,
+                            brandName = brand.displayName,
+                            emoji = brand.iconEmoji,
+                            category = brand.category,
+                            brandColor = brand.brandColor,
+                            onDelete = { onDeleteSite(site) }
+                        )
+                    }
+                } else {
+                    // Release Mode: Show Enforced Count Card & Notice (No delete buttons)
+                    item {
+                        val context = LocalContext.current
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 6.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, CyberEmerald.copy(alpha = 0.35f))
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Text("🔒", fontSize = 18.sp)
+                                        Text(
+                                            text = "${customSites.size} Custom Websites Blocked",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 14.sp,
+                                            color = CyberEmerald
+                                        )
+                                    }
+                                    Surface(
+                                        shape = RoundedCornerShape(6.dp),
+                                        color = CyberEmerald.copy(alpha = 0.15f)
+                                    ) {
+                                        Text(
+                                            text = "RELEASE ENFORCED",
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = CyberEmerald,
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "To keep your focus unbreakable, individual custom site removal is disabled in the Release build. To view full domain names or remove specific URLs, install the Halanoi Debug APK.",
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    lineHeight = 16.sp
+                                )
+                                Spacer(modifier = Modifier.height(10.dp))
+                                FilledTonalButton(
+                                    onClick = {
+                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/kavinmaranravi/HalanoiApp/releases"))
+                                        context.startActivity(intent)
+                                    },
+                                    shape = RoundedCornerShape(10.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text("Download Debug Build for Editing ⬇️", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -1206,12 +1358,7 @@ fun FullScreenSitesManagerView(
                             .padding(horizontal = 14.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        WebsiteFavicon(
-                            domain = site,
-                            emoji = brand.iconEmoji,
-                            brandColor = brand.brandColor,
-                            modifier = Modifier.size(34.dp)
-                        )
+                        Text(brand.iconEmoji, fontSize = 16.sp)
                         Spacer(modifier = Modifier.width(10.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(brand.displayName, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
@@ -1344,7 +1491,7 @@ fun FullScreenKeywordsManagerView(
                         )
                     }
                 }
-            } else {
+            } else if (BuildConfig.DEBUG) {
                 item {
                     Text(
                         text = "Active Screen Trigger Keywords (${customKeywords.size})",
@@ -1363,6 +1510,70 @@ fun FullScreenKeywordsManagerView(
                         tagColor = tag.tagColor,
                         onDelete = { onDeleteKeyword(kw) }
                     )
+                }
+            } else {
+                // Release Mode: Show Enforced Count Card & Notice (No delete buttons)
+                item {
+                    val context = LocalContext.current
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 6.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, RoyalViolet.copy(alpha = 0.35f))
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Text("🎯", fontSize = 18.sp)
+                                    Text(
+                                        text = "${customKeywords.size} Custom Keywords Active",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp,
+                                        color = RoyalViolet
+                                    )
+                                }
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = RoyalViolet.copy(alpha = 0.15f)
+                                ) {
+                                    Text(
+                                        text = "AI VISION ACTIVE",
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = RoyalViolet,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "All custom keyword triggers are actively running on-device OCR. Individual keyword deletion is locked in the Release build. To view and edit custom keyword triggers, install the Halanoi Debug APK.",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                lineHeight = 16.sp
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            FilledTonalButton(
+                                onClick = {
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/kavinmaranravi/HalanoiApp/releases"))
+                                    context.startActivity(intent)
+                                },
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Download Debug Build for Editing ⬇️", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                            }
+                        }
+                    }
                 }
             }
         }

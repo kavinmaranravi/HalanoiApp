@@ -1,9 +1,11 @@
 package com.halanoi.app
 
+import com.halanoi.app.BuildConfig
 import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.UserManager
@@ -301,18 +303,19 @@ fun DebugConsoleHubScreen(
                 onClick = onNavigateToLogs
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Deactivate Device Owner
-            Button(
-                onClick = onDeactivateClicked,
-                colors = ButtonDefaults.buttonColors(containerColor = DangerCrimson),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(14.dp)
-            ) {
-                Text("Deactivate Device Owner 🔓", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White)
+            if (BuildConfig.DEBUG) {
+                Spacer(modifier = Modifier.height(10.dp))
+                // Deactivate Device Owner
+                Button(
+                    onClick = onDeactivateClicked,
+                    colors = ButtonDefaults.buttonColors(containerColor = DangerCrimson),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Text("Deactivate Device Owner 🔓", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White)
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -447,42 +450,103 @@ fun DebugSitesInspectorScreen(
             contentPadding = PaddingValues(bottom = 30.dp)
         ) {
             if (customSites.isNotEmpty()) {
-                item {
-                    Text(
-                        text = "Custom User Overrides (${customSites.size})",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = CyberEmerald,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                }
-                items(customSites) { site ->
-                    val brand = BrandIconHelper.getWebsiteBrand(site)
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, brand.brandColor.copy(alpha = 0.3f))
-                    ) {
-                        Row(
+                if (BuildConfig.DEBUG) {
+                    item {
+                        Text(
+                            text = "Custom User Overrides (${customSites.size})",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = CyberEmerald,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+                    items(customSites) { site ->
+                        val brand = BrandIconHelper.getWebsiteBrand(site)
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, brand.brandColor.copy(alpha = 0.3f))
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(brand.iconEmoji, fontSize = 16.sp)
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(brand.displayName, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                                    Text(site, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                                IconButton(onClick = { onDeleteSite(site) }) {
+                                    Icon(Icons.Default.Close, contentDescription = "Delete", tint = DangerCrimson, modifier = Modifier.size(16.dp))
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // Release Mode: Summary Card (No delete buttons)
+                    item {
+                        val context = LocalContext.current
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                                .padding(top = 6.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, CyberEmerald.copy(alpha = 0.35f))
                         ) {
-                            WebsiteFavicon(
-                                domain = site,
-                                emoji = brand.iconEmoji,
-                                brandColor = brand.brandColor,
-                                modifier = Modifier.size(34.dp)
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(brand.displayName, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                                Text(site, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                            IconButton(onClick = { onDeleteSite(site) }) {
-                                Icon(Icons.Default.Close, contentDescription = "Delete", tint = DangerCrimson, modifier = Modifier.size(16.dp))
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Text("🔒", fontSize = 18.sp)
+                                        Text(
+                                            text = "${customSites.size} Custom Websites Blocked",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 14.sp,
+                                            color = CyberEmerald
+                                        )
+                                    }
+                                    Surface(
+                                        shape = RoundedCornerShape(6.dp),
+                                        color = CyberEmerald.copy(alpha = 0.15f)
+                                    ) {
+                                        Text(
+                                            text = "RELEASE ENFORCED",
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = CyberEmerald,
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "To ensure unbreakable focus, custom URL deletion is locked in the Release build. To inspect full URLs or delete items, please install the Halanoi Debug APK.",
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    lineHeight = 16.sp
+                                )
+                                Spacer(modifier = Modifier.height(10.dp))
+                                FilledTonalButton(
+                                    onClick = {
+                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/kavinmaranravi/HalanoiApp/releases"))
+                                        context.startActivity(intent)
+                                    },
+                                    shape = RoundedCornerShape(10.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text("Download Debug APK for Editing ⬇️", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                }
                             }
                         }
                     }
@@ -513,12 +577,7 @@ fun DebugSitesInspectorScreen(
                             .padding(horizontal = 14.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        WebsiteFavicon(
-                            domain = site,
-                            emoji = brand.iconEmoji,
-                            brandColor = brand.brandColor,
-                            modifier = Modifier.size(34.dp)
-                        )
+                        Text(brand.iconEmoji, fontSize = 16.sp)
                         Spacer(modifier = Modifier.width(10.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(brand.displayName, fontWeight = FontWeight.Bold, fontSize = 13.sp)
@@ -600,7 +659,7 @@ fun DebugKeywordsInspectorScreen(
                         Text("No custom keywords currently configured.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                     }
                 }
-            } else {
+            } else if (BuildConfig.DEBUG) {
                 items(customKeywords) { kw ->
                     val tag = BrandIconHelper.getKeywordTag(kw)
                     Surface(
@@ -623,6 +682,70 @@ fun DebugKeywordsInspectorScreen(
                             }
                             IconButton(onClick = { onDeleteKeyword(kw) }) {
                                 Icon(Icons.Default.Close, contentDescription = "Delete", tint = DangerCrimson, modifier = Modifier.size(16.dp))
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Release Mode: Summary Card (No delete buttons)
+                item {
+                    val context = LocalContext.current
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 6.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, RoyalViolet.copy(alpha = 0.35f))
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Text("🎯", fontSize = 18.sp)
+                                    Text(
+                                        text = "${customKeywords.size} Custom Keywords Active",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp,
+                                        color = RoyalViolet
+                                    )
+                                }
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = RoyalViolet.copy(alpha = 0.15f)
+                                ) {
+                                    Text(
+                                        text = "AI VISION ACTIVE",
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = RoyalViolet,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "All screen keywords are active in the OCR sniper. Custom keyword deletion is restricted in Release mode. To edit or delete keyword triggers, please install the Halanoi Debug APK.",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                lineHeight = 16.sp
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            FilledTonalButton(
+                                onClick = {
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/kavinmaranravi/HalanoiApp/releases"))
+                                    context.startActivity(intent)
+                                },
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Download Debug APK for Editing ⬇️", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }
