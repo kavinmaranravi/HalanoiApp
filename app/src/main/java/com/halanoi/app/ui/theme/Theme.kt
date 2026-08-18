@@ -12,43 +12,56 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = CyberEmerald,
+    onPrimary = androidx.compose.ui.graphics.Color(0xFF022C22),
+    primaryContainer = androidx.compose.ui.graphics.Color(0xFF064E3B),
+    onPrimaryContainer = CyberEmerald,
+    secondary = RoyalViolet,
+    onSecondary = androidx.compose.ui.graphics.Color.White,
+    secondaryContainer = androidx.compose.ui.graphics.Color(0xFF4C1D95),
+    onSecondaryContainer = androidx.compose.ui.graphics.Color(0xFFDDD6FE),
+    tertiary = NeonCyan,
+    onTertiary = androidx.compose.ui.graphics.Color(0xFF083344),
+    background = DarkBackground,
+    onBackground = TextPrimaryDark,
+    surface = DarkSurface,
+    onSurface = TextPrimaryDark,
+    surfaceVariant = DarkSurfaceVariant,
+    onSurfaceVariant = TextSecondaryDark,
+    outline = DarkBorder,
+    error = DangerCrimson,
+    onError = androidx.compose.ui.graphics.Color.White
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    primary = LightEmerald,
+    onPrimary = androidx.compose.ui.graphics.Color.White,
+    primaryContainer = androidx.compose.ui.graphics.Color(0xFFD1FAE5),
+    onPrimaryContainer = androidx.compose.ui.graphics.Color(0xFF065F46),
+    secondary = LightViolet,
+    onSecondary = androidx.compose.ui.graphics.Color.White,
+    secondaryContainer = androidx.compose.ui.graphics.Color(0xFFEDE9FE),
+    onSecondaryContainer = androidx.compose.ui.graphics.Color(0xFF5B21B6),
+    tertiary = LightCyan,
+    onTertiary = androidx.compose.ui.graphics.Color.White,
+    background = LightBackground,
+    onBackground = TextPrimaryLight,
+    surface = LightSurface,
+    onSurface = TextPrimaryLight,
+    surfaceVariant = LightSurfaceVariant,
+    onSurfaceVariant = TextSecondaryLight,
+    outline = LightBorder,
+    error = LightCrimson,
+    onError = androidx.compose.ui.graphics.Color.White
 )
 
 @Composable
 fun HalanoiTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
     MaterialTheme(
         colorScheme = colorScheme,
