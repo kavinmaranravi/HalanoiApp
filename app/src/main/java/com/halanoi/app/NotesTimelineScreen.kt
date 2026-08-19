@@ -146,7 +146,6 @@ fun FullScreenNoteEditor(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 20.dp)
-                .imePadding()
         ) {
             BasicTextField(
                 value = title,
@@ -305,9 +304,7 @@ fun NotesTimelineScreen(
         Spacer(modifier = Modifier.height(14.dp))
 
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .imePadding()
+            modifier = Modifier.fillMaxSize()
         ) {
             if (selectedTabIndex == 0) {
                 TasksAndTimelineTab(notes, events, onAddNote, onToggleNote, onDeleteNote, onDeleteEvent)
@@ -333,7 +330,7 @@ fun TasksAndTimelineTab(
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(10.dp),
-        contentPadding = PaddingValues(bottom = 110.dp)
+        contentPadding = PaddingValues(bottom = 80.dp)
     ) {
         item {
             Card(
@@ -576,7 +573,7 @@ fun ScratchpadsListTab(
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(10.dp),
-        contentPadding = PaddingValues(bottom = 110.dp)
+        contentPadding = PaddingValues(bottom = 80.dp)
     ) {
         item {
             Card(

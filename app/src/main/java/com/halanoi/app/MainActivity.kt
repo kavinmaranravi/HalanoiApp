@@ -114,7 +114,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun HalanoiSpaApp(notesViewModel: NotesTimelineViewModel) {
     val context = LocalContext.current
@@ -359,7 +359,7 @@ fun HalanoiSpaApp(notesViewModel: NotesTimelineViewModel) {
             }
         },
         bottomBar = {
-            if (!isFullScreenEditorActive) {
+            if (!isFullScreenEditorActive && !WindowInsets.isImeVisible) {
                 // Floating Glass Dock
                 FloatingGlassBottomDock(
                     currentTab = currentTab,
