@@ -70,7 +70,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.halanoi.app.ui.BrandIconHelper
-import com.halanoi.app.ui.SovereignAdminPolicyCard
+import com.halanoi.app.ui.SovereignAdminPolicyButton
+import com.halanoi.app.ui.SovereignAdminPolicyDialog
 import com.halanoi.app.ui.WebsiteFavicon
 import com.halanoi.app.ui.theme.*
 import kotlinx.coroutines.Dispatchers
@@ -89,7 +90,7 @@ class MainActivity : ComponentActivity() {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 val database = AppDatabase.getDatabase(applicationContext)
-                return NotesTimelineViewModel(database.appDao()) as T
+                return NotesTimelineViewModel(database.appDao(), applicationContext) as T
             }
         }
     }
@@ -526,6 +527,26 @@ fun ShieldMasterTab(
     onOpenAccessibilitySettings: () -> Unit
 ) {
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
+    val sharedPrefs = remember { context.getSharedPreferences("HalanoiVault", Context.MODE_PRIVATE) }
+    var blockedCount by remember { mutableStateOf(sharedPrefs.getInt("BLOCKED_BROWSER_COUNT", 0)) }
+    var showLogsDialog by remember { mutableStateOf(false) }
+    var showPolicyDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            blockedCount = sharedPrefs.getInt("BLOCKED_BROWSER_COUNT", 0)
+            kotlinx.coroutines.delay(2000)
+        }
+    }
+
+    if (showPolicyDialog) {
+        SovereignAdminPolicyDialog(onDismiss = { showPolicyDialog = false })
+    }
+
+    if (showLogsDialog) {
+        InterceptionLogsDialog(onDismiss = { showLogsDialog = false })
+    }
 
     Column(
         modifier = Modifier
@@ -569,13 +590,13 @@ fun ShieldMasterTab(
         }
 
         // --- MASTER PROTECTION ORB ---
-        Spacer(modifier = Modifier.height(18.dp))
+        Spacer(modifier = Modifier.height(14.dp))
         MasterProtectionOrb(
             isActive = isVpnActive,
             onClick = onToggleMasterShield
         )
 
-        Spacer(modifier = Modifier.height(22.dp))
+        Spacer(modifier = Modifier.height(18.dp))
 
         // Status text
         Text(
@@ -589,8 +610,44 @@ fun ShieldMasterTab(
             text = if (isVpnActive) "Cloudflare Family DNS (1.1.1.3) Enforced" else "Tap Orb to engage VPN & AI Shield",
             fontSize = 12.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-            modifier = Modifier.padding(top = 2.dp, bottom = 20.dp)
+            modifier = Modifier.padding(top = 2.dp, bottom = 14.dp)
         )
+
+        // --- LIVE INTERCEPTION STATS CARD ---
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Interceptions & Threats", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text("$blockedCount", fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = CyberEmerald)
+                        Text("distractions deflected 🛡️", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
+                    }
+                }
+                OutlinedButton(
+                    onClick = { showLogsDialog = true },
+                    shape = RoundedCornerShape(10.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Text("📜 View Logs", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
 
         // --- BROWSER LOCKDOWN SELECTOR PILLS ---
         Card(
@@ -687,12 +744,103 @@ fun ShieldMasterTab(
                 Text("Deactivate Device Owner (Debug Only) 🔓", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White)
             }
         } else {
-            // In Release Mode: Show Sovereign Lockdown & PC Deactivation Guide Card
-            Spacer(modifier = Modifier.height(14.dp))
-            SovereignAdminPolicyCard()
+            // In Release Mode: Sleek Policy & ADB Guide Button
+            Spacer(modifier = Modifier.height(12.dp))
+            SovereignAdminPolicyButton(onClick = { showPolicyDialog = true })
         }
 
         Spacer(modifier = Modifier.height(100.dp)) // Space for floating dock
+    }
+}
+
+@Composable
+fun InterceptionLogsDialog(
+    onDismiss: () -> Unit
+) {
+    val logs = remember { AppLogManager.getLogs() }
+
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(22.dp),
+            color = MaterialTheme.colorScheme.surface,
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.75f)
+        ) {
+            Column(modifier = Modifier.padding(18.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text("🛡️", fontSize = 18.sp)
+                        Text(
+                            text = "Interception Logs",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    IconButton(onClick = onDismiss, modifier = Modifier.size(28.dp)) {
+                        Icon(Icons.Default.Close, contentDescription = "Close")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Surface(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color(0xFF070B14),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF1E293B))
+                ) {
+                    if (logs.isEmpty()) {
+                        Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
+                            Text(
+                                "No interception events recorded yet.\nYour shield is actively patrolling!",
+                                color = Color.Gray,
+                                fontSize = 12.sp,
+                                textAlign = TextAlign.Center,
+                                lineHeight = 18.sp
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(10.dp)
+                        ) {
+                            items(logs.reversed()) { log ->
+                                Text(
+                                    text = log,
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 11.sp,
+                                    color = CyberEmerald,
+                                    modifier = Modifier.padding(vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Close", fontWeight = FontWeight.Bold)
+                }
+            }
+        }
     }
 }
 
@@ -851,6 +999,33 @@ fun EmbeddedAppVaultTab(
         }
     }
 
+    data class SystemBlockedAppInfo(
+        val name: String,
+        val packageName: String,
+        val emoji: String,
+        val category: String,
+        val brandColor: Color
+    )
+
+    val coreSystemApps = remember {
+        listOf(
+            SystemBlockedAppInfo("X / Twitter", "com.twitter.android", "𝕏", "Social Media", Color(0xFF1D9BF0)),
+            SystemBlockedAppInfo("YouTube", "com.google.android.youtube", "▶️", "Video Streaming", Color(0xFFFF0000)),
+            SystemBlockedAppInfo("Instagram", "com.instagram.android", "📸", "Photo & Reels", Color(0xFFE1306C)),
+            SystemBlockedAppInfo("Facebook", "com.facebook.katana", "📘", "Social Network", Color(0xFF1877F2)),
+            SystemBlockedAppInfo("TikTok", "com.zhiliaoapp.musically", "🎵", "Short Video", Color(0xFFEE1D52)),
+            SystemBlockedAppInfo("Snapchat", "com.snapchat.android", "👻", "Ephemeral Chat", Color(0xFFFFFC00)),
+            SystemBlockedAppInfo("Reddit", "com.reddit.frontpage", "🔴", "Forum & News", Color(0xFFFF4500)),
+            SystemBlockedAppInfo("Netflix", "com.netflix.mediaclient", "🎬", "Movies & TV", Color(0xFFE50914)),
+            SystemBlockedAppInfo("Tor Browser", "org.torproject.torbrowser", "🧅", "Bypass Tool", Color(0xFF7D4698))
+        )
+    }
+
+    val filteredCoreApps = remember(coreSystemApps, searchQuery) {
+        if (searchQuery.isBlank()) coreSystemApps
+        else coreSystemApps.filter { it.name.contains(searchQuery, true) || it.packageName.contains(searchQuery, true) }
+    }
+
     val lockedApps = remember(filteredApps, lockedAppsSet.toList()) {
         filteredApps.filter { lockedAppsSet.contains(it.packageName) }
     }
@@ -893,7 +1068,7 @@ fun EmbeddedAppVaultTab(
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
-        } else if (filteredApps.isEmpty()) {
+        } else if (filteredApps.isEmpty() && filteredCoreApps.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("No matching apps found", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -903,7 +1078,58 @@ fun EmbeddedAppVaultTab(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(bottom = 100.dp)
             ) {
-                // Pinned Locked Apps Section
+                // 1. Core System Blocked Apps Section (X, YouTube, Instagram, etc.)
+                if (filteredCoreApps.isNotEmpty()) {
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 4.dp, bottom = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "System Blocked Apps (${filteredCoreApps.size})",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = DangerCrimson.copy(alpha = 0.12f)
+                            ) {
+                                Text(
+                                    text = "CORE PROTECTED 🛡️",
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = DangerCrimson,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    items(filteredCoreApps, key = { "core_" + it.packageName }) { core ->
+                        val installedApp = installedApps.find { it.packageName == core.packageName }
+                        SystemAppVaultCard(
+                            name = core.name,
+                            packageName = core.packageName,
+                            emoji = core.emoji,
+                            category = core.category,
+                            brandColor = core.brandColor,
+                            installedApp = installedApp
+                        )
+                    }
+
+                    item {
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        )
+                    }
+                }
+
+                // 2. Pinned User Locked Apps Section
                 if (lockedApps.isNotEmpty()) {
                     item {
                         Row(
@@ -950,7 +1176,7 @@ fun EmbeddedAppVaultTab(
                     }
                 }
 
-                // Available / Unlocked Apps Section
+                // 3. Available / Unlocked Apps Section
                 if (availableApps.isNotEmpty()) {
                     item {
                         Text(
@@ -970,6 +1196,91 @@ fun EmbeddedAppVaultTab(
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun SystemAppVaultCard(
+    name: String,
+    packageName: String,
+    emoji: String,
+    category: String,
+    brandColor: Color,
+    installedApp: SelectableApp?
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.40f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, brandColor.copy(alpha = 0.25f))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (installedApp?.iconBitmap != null) {
+                androidx.compose.foundation.Image(
+                    bitmap = installedApp.iconBitmap,
+                    contentDescription = name,
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(brandColor.copy(alpha = 0.15f))
+                        .border(1.dp, brandColor.copy(alpha = 0.3f), RoundedCornerShape(8.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(emoji, fontSize = 18.sp)
+                }
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = name,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    if (installedApp != null) {
+                        Surface(shape = RoundedCornerShape(4.dp), color = CyberEmerald.copy(alpha = 0.15f)) {
+                            Text("Installed", fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = CyberEmerald, modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp))
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "$category • $packageName",
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = DangerCrimson.copy(alpha = 0.12f),
+                border = androidx.compose.foundation.BorderStroke(1.dp, DangerCrimson.copy(alpha = 0.25f))
+            ) {
+                Text(
+                    text = "LOCKED 🔒",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = DangerCrimson,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                )
             }
         }
     }
@@ -1409,7 +1720,12 @@ fun FullScreenSitesManagerView(
                             .padding(horizontal = 14.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(brand.iconEmoji, fontSize = 16.sp)
+                        WebsiteFavicon(
+                            domain = site,
+                            emoji = brand.iconEmoji,
+                            brandColor = brand.brandColor,
+                            modifier = Modifier.size(36.dp)
+                        )
                         Spacer(modifier = Modifier.width(10.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(brand.displayName, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)

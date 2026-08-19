@@ -42,7 +42,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.halanoi.app.ui.BrandIconHelper
-import com.halanoi.app.ui.SovereignAdminPolicyCard
+import com.halanoi.app.ui.SovereignAdminPolicyButton
+import com.halanoi.app.ui.SovereignAdminPolicyDialog
 import com.halanoi.app.ui.WebsiteFavicon
 import com.halanoi.app.ui.theme.*
 
@@ -304,6 +305,12 @@ fun DebugConsoleHubScreen(
                 onClick = onNavigateToLogs
             )
 
+            var showPolicyDialog by remember { mutableStateOf(false) }
+
+            if (showPolicyDialog) {
+                SovereignAdminPolicyDialog(onDismiss = { showPolicyDialog = false })
+            }
+
             if (BuildConfig.DEBUG) {
                 Spacer(modifier = Modifier.height(10.dp))
                 // Deactivate Device Owner
@@ -318,8 +325,8 @@ fun DebugConsoleHubScreen(
                     Text("Deactivate Device Owner 🔓", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White)
                 }
             } else {
-                Spacer(modifier = Modifier.height(14.dp))
-                SovereignAdminPolicyCard()
+                Spacer(modifier = Modifier.height(10.dp))
+                SovereignAdminPolicyButton(onClick = { showPolicyDialog = true })
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -581,7 +588,12 @@ fun DebugSitesInspectorScreen(
                             .padding(horizontal = 14.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(brand.iconEmoji, fontSize = 16.sp)
+                        WebsiteFavicon(
+                            domain = site,
+                            emoji = brand.iconEmoji,
+                            brandColor = brand.brandColor,
+                            modifier = Modifier.size(36.dp)
+                        )
                         Spacer(modifier = Modifier.width(10.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(brand.displayName, fontWeight = FontWeight.Bold, fontSize = 13.sp)

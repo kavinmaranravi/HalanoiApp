@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -23,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -94,7 +96,6 @@ fun FullScreenNoteEditor(
     onBack: () -> Unit,
     onUpdate: (ScratchpadEntity, String, String) -> Unit
 ) {
-    // Intercept hardware/gesture back press to cleanly return
     BackHandler(enabled = true) {
         onBack()
     }
@@ -147,45 +148,48 @@ fun FullScreenNoteEditor(
                 .padding(horizontal = 20.dp)
                 .imePadding()
         ) {
-            TextField(
+            BasicTextField(
                 value = title,
                 onValueChange = { title = it },
-                placeholder = { 
-                    Text(
-                        "Untitled Note", 
-                        style = MaterialTheme.typography.headlineMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                        )
-                    ) 
-                },
                 textStyle = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.ExtraBold, 
-                    color = MaterialTheme.colorScheme.onSurface
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 22.sp
                 ),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                ),
+                cursorBrush = SolidColor(CyberEmerald),
+                decorationBox = { innerTextField ->
+                    Box(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                        if (title.isEmpty()) {
+                            Text(
+                                "Untitled Note",
+                                style = MaterialTheme.typography.headlineMedium.copy(
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = 22.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
+                                )
+                            )
+                        }
+                        innerTextField()
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             )
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 2.dp),
+                    .padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
                     text = dateString,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 )
                 Surface(
                     shape = RoundedCornerShape(6.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
                 ) {
                     Text(
                         text = "${content.length} chars",
@@ -198,33 +202,35 @@ fun FullScreenNoteEditor(
             }
 
             HorizontalDivider(
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
-                modifier = Modifier.padding(vertical = 8.dp)
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.10f),
+                modifier = Modifier.padding(vertical = 4.dp)
             )
 
-            TextField(
+            BasicTextField(
                 value = content,
                 onValueChange = { content = it },
-                placeholder = { 
-                    Text(
-                        "Start typing thoughts, focus notes, or code snippets...", 
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                        fontSize = 15.sp
-                    ) 
-                },
                 textStyle = MaterialTheme.typography.bodyLarge.copy(
                     color = MaterialTheme.colorScheme.onSurface,
-                    lineHeight = 24.sp
+                    fontSize = 15.sp,
+                    lineHeight = 22.sp
                 ),
+                cursorBrush = SolidColor(CyberEmerald),
+                decorationBox = { innerTextField ->
+                    Box(modifier = Modifier.fillMaxSize().padding(vertical = 6.dp)) {
+                        if (content.isEmpty()) {
+                            Text(
+                                "Start typing thoughts, focus notes, or code snippets...",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                                fontSize = 15.sp,
+                                lineHeight = 22.sp
+                            )
+                        }
+                        innerTextField()
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
+                    .weight(1f)
             )
         }
     }
@@ -597,7 +603,7 @@ fun ScratchpadsListTab(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "+ Create New Scratchpad",
+                        text = "Create New Scratchpad",
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.primary

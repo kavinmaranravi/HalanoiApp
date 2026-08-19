@@ -1,6 +1,7 @@
 package com.halanoi.app.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -126,7 +127,7 @@ fun WebsiteFavicon(
     domain: String,
     emoji: String,
     brandColor: Color,
-    modifier: Modifier = Modifier.size(34.dp)
+    modifier: Modifier = Modifier.size(36.dp)
 ) {
     val clean = domain.lowercase().trim()
         .replace("https://", "")
@@ -134,22 +135,24 @@ fun WebsiteFavicon(
         .replace("www.", "")
         .split("/").first()
 
+    val domainToFetch = if (!clean.contains(".")) "$clean.com" else clean
     var isError by remember(domain) { mutableStateOf(false) }
 
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(brandColor.copy(alpha = 0.15f)),
+            .clip(RoundedCornerShape(10.dp))
+            .background(brandColor.copy(alpha = 0.12f))
+            .border(1.dp, brandColor.copy(alpha = 0.25f), RoundedCornerShape(10.dp)),
         contentAlignment = Alignment.Center
     ) {
-        if (!isError && (clean.contains(".") || clean.contains("localhost"))) {
+        if (!isError) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data("https://www.google.com/s2/favicons?sz=64&domain=$clean")
+                    .data("https://www.google.com/s2/favicons?sz=128&domain=$domainToFetch")
                     .crossfade(true)
                     .build(),
-                contentDescription = "$clean Favicon",
-                modifier = Modifier.size(20.dp),
+                contentDescription = "$domain Favicon",
+                modifier = Modifier.size(22.dp),
                 onError = { isError = true }
             )
         } else {
@@ -157,4 +160,3 @@ fun WebsiteFavicon(
         }
     }
 }
-

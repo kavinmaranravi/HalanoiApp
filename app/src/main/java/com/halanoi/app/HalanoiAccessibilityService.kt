@@ -399,6 +399,11 @@ class HalanoiAccessibilityService : AccessibilityService() {
         try {
             isOnCooldown = true 
             
+            val sharedPrefs = getSharedPreferences("HalanoiVault", Context.MODE_PRIVATE)
+            val curCount = sharedPrefs.getInt("BLOCKED_BROWSER_COUNT", 0)
+            sharedPrefs.edit().putInt("BLOCKED_BROWSER_COUNT", curCount + 1).apply()
+            AppLogManager.addLog("🛡️ BLOCKED: ${packageName ?: "App/Web"} - $reason")
+
             // 1. OVERWRITE: Redirect to local loopback page (guaranteed to be supported by http intent filter)
             if (packageName != null && (targetRiskApps.any { packageName.contains(it) } || BrowserHelper.isBrowser(applicationContext, packageName))) {
                 try {

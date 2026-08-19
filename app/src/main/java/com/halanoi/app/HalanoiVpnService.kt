@@ -438,6 +438,9 @@ object HalanoiPacketEngine {
             if (isBlocked) {
                 Log.d("HalanoiVPN", "🚫 SINKHOLE: $domain")
                 AppLogManager.addLog("🚫 SINKHOLE: $domain")
+                val sharedPrefs = vpnService.getSharedPreferences("HalanoiVault", Context.MODE_PRIVATE)
+                val curCount = sharedPrefs.getInt("BLOCKED_BROWSER_COUNT", 0)
+                sharedPrefs.edit().putInt("BLOCKED_BROWSER_COUNT", curCount + 1).apply()
                 sendDnsReply(packet, questionEnd, ipHeaderLength, "0.0.0.0", qType, outputStream)
             } else {
                 var forcedSafeSearchIp: String? = null
