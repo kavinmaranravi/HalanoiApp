@@ -992,16 +992,10 @@ fun EmbeddedAppVaultTab(
         }
     }
 
-    val filteredApps = remember(installedApps, searchQuery) {
-        if (searchQuery.isBlank()) installedApps
-        else installedApps.filter {
-            it.name.contains(searchQuery, ignoreCase = true) || it.packageName.contains(searchQuery, ignoreCase = true)
-        }
-    }
-
     data class SystemBlockedAppInfo(
         val name: String,
         val packageName: String,
+        val domain: String,
         val emoji: String,
         val category: String,
         val brandColor: Color
@@ -1009,21 +1003,34 @@ fun EmbeddedAppVaultTab(
 
     val coreSystemApps = remember {
         listOf(
-            SystemBlockedAppInfo("X / Twitter", "com.twitter.android", "𝕏", "Social Media", Color(0xFF1D9BF0)),
-            SystemBlockedAppInfo("YouTube", "com.google.android.youtube", "▶️", "Video Streaming", Color(0xFFFF0000)),
-            SystemBlockedAppInfo("Instagram", "com.instagram.android", "📸", "Photo & Reels", Color(0xFFE1306C)),
-            SystemBlockedAppInfo("Facebook", "com.facebook.katana", "📘", "Social Network", Color(0xFF1877F2)),
-            SystemBlockedAppInfo("TikTok", "com.zhiliaoapp.musically", "🎵", "Short Video", Color(0xFFEE1D52)),
-            SystemBlockedAppInfo("Snapchat", "com.snapchat.android", "👻", "Ephemeral Chat", Color(0xFFFFFC00)),
-            SystemBlockedAppInfo("Reddit", "com.reddit.frontpage", "🔴", "Forum & News", Color(0xFFFF4500)),
-            SystemBlockedAppInfo("Netflix", "com.netflix.mediaclient", "🎬", "Movies & TV", Color(0xFFE50914)),
-            SystemBlockedAppInfo("Tor Browser", "org.torproject.torbrowser", "🧅", "Bypass Tool", Color(0xFF7D4698))
+            SystemBlockedAppInfo("X / Twitter", "com.twitter.android", "x.com", "𝕏", "Social Media", Color(0xFF1D9BF0)),
+            SystemBlockedAppInfo("YouTube", "com.google.android.youtube", "youtube.com", "▶️", "Video Streaming", Color(0xFFFF0000)),
+            SystemBlockedAppInfo("Instagram", "com.instagram.android", "instagram.com", "📸", "Photo & Reels", Color(0xFFE1306C)),
+            SystemBlockedAppInfo("Facebook", "com.facebook.katana", "facebook.com", "📘", "Social Network", Color(0xFF1877F2)),
+            SystemBlockedAppInfo("TikTok", "com.zhiliaoapp.musically", "tiktok.com", "🎵", "Short Video", Color(0xFFEE1D52)),
+            SystemBlockedAppInfo("Snapchat", "com.snapchat.android", "snapchat.com", "👻", "Ephemeral Chat", Color(0xFFFFFC00)),
+            SystemBlockedAppInfo("Reddit", "com.reddit.frontpage", "reddit.com", "🔴", "Forum & News", Color(0xFFFF4500)),
+            SystemBlockedAppInfo("Netflix", "com.netflix.mediaclient", "netflix.com", "🎬", "Movies & TV", Color(0xFFE50914)),
+            SystemBlockedAppInfo("Tor Browser", "org.torproject.torbrowser", "torproject.org", "🧅", "Bypass Tool", Color(0xFF7D4698))
         )
+    }
+
+    val coreSystemPackageNames = remember {
+        coreSystemApps.map { it.packageName }.toSet()
     }
 
     val filteredCoreApps = remember(coreSystemApps, searchQuery) {
         if (searchQuery.isBlank()) coreSystemApps
         else coreSystemApps.filter { it.name.contains(searchQuery, true) || it.packageName.contains(searchQuery, true) }
+    }
+
+    val filteredApps = remember(installedApps, searchQuery, coreSystemPackageNames) {
+        // Exclude system blocked apps so they don't show as duplicate in available/locked apps
+        val nonSystemApps = installedApps.filter { !coreSystemPackageNames.contains(it.packageName) }
+        if (searchQuery.isBlank()) nonSystemApps
+        else nonSystemApps.filter {
+            it.name.contains(searchQuery, ignoreCase = true) || it.packageName.contains(searchQuery, ignoreCase = true)
+        }
     }
 
     val lockedApps = remember(filteredApps, lockedAppsSet.toList()) {
@@ -1114,6 +1121,7 @@ fun EmbeddedAppVaultTab(
                         SystemAppVaultCard(
                             name = core.name,
                             packageName = core.packageName,
+                            domain = core.domain,
                             emoji = core.emoji,
                             category = core.category,
                             brandColor = core.brandColor,
@@ -1205,6 +1213,7 @@ fun EmbeddedAppVaultTab(
 fun SystemAppVaultCard(
     name: String,
     packageName: String,
+    domain: String,
     emoji: String,
     category: String,
     brandColor: Color,
@@ -1231,16 +1240,12 @@ fun SystemAppVaultCard(
                         .clip(RoundedCornerShape(8.dp))
                 )
             } else {
-                Box(
-                    modifier = Modifier
-                        .size(38.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(brandColor.copy(alpha = 0.15f))
-                        .border(1.dp, brandColor.copy(alpha = 0.3f), RoundedCornerShape(8.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(emoji, fontSize = 18.sp)
-                }
+                WebsiteFavicon(
+                    domain = domain,
+                    emoji = emoji,
+                    brandColor = brandColor,
+                    modifier = Modifier.size(38.dp)
+                )
             }
 
             Spacer(modifier = Modifier.width(12.dp))
