@@ -376,20 +376,12 @@ fun HalanoiSpaApp(
                 )
             }
         },
-        bottomBar = {
-            if (!isFullScreenEditorActive && !WindowInsets.isImeVisible) {
-                // Floating Glass Dock
-                FloatingGlassBottomDock(
-                    currentTab = currentTab,
-                    onTabSelected = { currentTab = it }
-                )
-            }
-        }
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(if (isFullScreenEditorActive) PaddingValues(0.dp) else innerPadding)
+                .padding(top = if (isFullScreenEditorActive) 0.dp else innerPadding.calculateTopPadding())
         ) {
             AnimatedContent(
                 targetState = currentTab,
@@ -495,6 +487,20 @@ fun HalanoiSpaApp(
                     SpaTab.ACTIVITY -> NotesTimelineRoute(
                         viewModel = notesViewModel,
                         onFullScreenModeChanged = { isFullScreenEditorActive = it }
+                    )
+                }
+            }
+
+            // True Floating Frosted Glass Dock (Overlaying over the scrolling content)
+            if (!isFullScreenEditorActive && !WindowInsets.isImeVisible) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                ) {
+                    FloatingGlassBottomDock(
+                        currentTab = currentTab,
+                        onTabSelected = { currentTab = it }
                     )
                 }
             }
@@ -2247,10 +2253,10 @@ fun FloatingGlassBottomDock(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp)
-                .shadow(elevation = 10.dp, shape = RoundedCornerShape(32.dp)),
+                .shadow(elevation = 16.dp, shape = RoundedCornerShape(32.dp)),
             shape = RoundedCornerShape(32.dp),
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f))
         ) {
             Row(
                 modifier = Modifier
