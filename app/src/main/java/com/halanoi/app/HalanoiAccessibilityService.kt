@@ -329,9 +329,34 @@ class HalanoiAccessibilityService : AccessibilityService() {
                         val topResult = results.entries.first()
                         val topLabel = topResult.key
                         val topScore = topResult.value
+                        val willBlock = DANGER_LABELS.contains(topLabel) && topScore >= MIN_CONFIDENCE_THRESHOLD
+
                         Log.d(TAG, "AI Analyzed: '$text' -> $topLabel ($topScore)")
                         AppLogManager.addLog("🧠 AI RESULT: \"$croppedText\" -> $topLabel ($topScore)")
-                        if (DANGER_LABELS.contains(topLabel) && topScore >= MIN_CONFIDENCE_THRESHOLD) {
+
+                        // Asynchronously record into AI Telemetry Ground-Truth Database
+                        try {
+                            val appName = try {
+                                packageManager.getApplicationLabel(packageManager.getApplicationInfo(packageName, 0)).toString()
+                            } catch (e: Exception) {
+                                packageName
+                            }
+                            AppDatabase.getDatabase(this@HalanoiAccessibilityService).aiTelemetryDao().insert(
+                                AiTelemetryEntity(
+                                    appName = appName,
+                                    packageName = packageName,
+                                    scrapedText = text.trim(),
+                                    predictedLabel = topLabel,
+                                    confidenceScore = topScore,
+                                    wasBlocked = willBlock,
+                                    groundTruthFeedback = "UNRATED"
+                                )
+                            )
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Failed to record AI telemetry: ${e.message}")
+                        }
+
+                        if (willBlock) {
                             isOnCooldown = true
                             AppLogManager.addLog("🚨 AI BLOCK: Triggered by \"$croppedText\" (Label: $topLabel)")
                             withContext(Dispatchers.Main) {

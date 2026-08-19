@@ -95,6 +95,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private val aiEvaluationViewModel: AiEvaluationViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
@@ -107,7 +109,10 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    HalanoiSpaApp(notesViewModel = notesViewModel)
+                    HalanoiSpaApp(
+                        notesViewModel = notesViewModel,
+                        aiEvaluationViewModel = aiEvaluationViewModel
+                    )
                 }
             }
         }
@@ -116,7 +121,10 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun HalanoiSpaApp(notesViewModel: NotesTimelineViewModel) {
+fun HalanoiSpaApp(
+    notesViewModel: NotesTimelineViewModel,
+    aiEvaluationViewModel: AiEvaluationViewModel
+) {
     val context = LocalContext.current
     val dpm = remember { context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager }
     val adminComponent = remember { ComponentName(context, HalanoiDeviceAdminReceiver::class.java) }
@@ -128,6 +136,16 @@ fun HalanoiSpaApp(notesViewModel: NotesTimelineViewModel) {
     var isDeviceOwner by remember { mutableStateOf(false) }
     var showAdminSheet by remember { mutableStateOf(false) }
     var isFullScreenEditorActive by remember { mutableStateOf(false) }
+    var showAiEvaluationScreen by remember { mutableStateOf(false) }
+
+    if (showAiEvaluationScreen) {
+        BackHandler { showAiEvaluationScreen = false }
+        AiEvaluationScreen(
+            viewModel = aiEvaluationViewModel,
+            onBack = { showAiEvaluationScreen = false }
+        )
+        return
+    }
 
     var browserBlockMode by remember { 
         mutableStateOf(sharedPrefs.getString("BROWSER_BLOCK_MODE", "STANDARD") ?: "STANDARD") 
@@ -493,6 +511,10 @@ fun HalanoiSpaApp(notesViewModel: NotesTimelineViewModel) {
                         onImportFile = {
                             showAdminSheet = false
                             filePickerLauncher.launch(arrayOf("text/plain"))
+                        },
+                        onOpenAiEvaluation = {
+                            showAdminSheet = false
+                            showAiEvaluationScreen = true
                         },
                         onOpenDevConsole = {
                             showAdminSheet = false
@@ -2285,6 +2307,7 @@ fun FloatingGlassBottomDock(
 fun AdminSettingsSheetContent(
     isDeviceOwner: Boolean,
     onImportFile: () -> Unit,
+    onOpenAiEvaluation: () -> Unit,
     onOpenDevConsole: () -> Unit,
     onOpenGitHub: () -> Unit
 ) {
@@ -2319,6 +2342,30 @@ fun AdminSettingsSheetContent(
                 Column {
                     Text("Bulk Import Rules", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     Text("Load websites, keywords, apps from export.txt", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // AI Dataset & Evaluation Lab
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .clickable { onOpenAiEvaluation() },
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Default.Info, contentDescription = null, tint = NeonCyan)
+                Spacer(modifier = Modifier.width(14.dp))
+                Column {
+                    Text("AI Dataset & Evaluation Lab 🧠", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("Accuracy metrics, ground truth & 1-tap CSV export", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }

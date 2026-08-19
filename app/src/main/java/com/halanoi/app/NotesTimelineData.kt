@@ -95,9 +95,10 @@ interface AppDao {
 // ==========================================
 // 3. ROOM DATABASE & PERMANENT BACKUP HELPER
 // ==========================================
-@Database(entities = [NoteEntity::class, TimelineEventEntity::class, ScratchpadEntity::class], version = 3, exportSchema = false)
+@Database(entities = [NoteEntity::class, TimelineEventEntity::class, ScratchpadEntity::class, AiTelemetryEntity::class], version = 4, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun appDao(): AppDao
+    abstract fun aiTelemetryDao(): AiTelemetryDao
 
     companion object {
         @Volatile

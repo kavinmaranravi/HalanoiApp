@@ -48,7 +48,7 @@ import com.halanoi.app.ui.WebsiteFavicon
 import com.halanoi.app.ui.theme.*
 
 enum class DebugSubScreen {
-    HUB, SITES, KEYWORDS, AI_TOPICS, LOGS
+    HUB, SITES, KEYWORDS, AI_TOPICS, LOGS, AI_DATASET
 }
 
 class DebugConsoleActivity : ComponentActivity() {
@@ -119,6 +119,7 @@ fun DebugConsoleScreen(onBack: () -> Unit) {
                     onNavigateToSites = { currentSubScreen = DebugSubScreen.SITES },
                     onNavigateToKeywords = { currentSubScreen = DebugSubScreen.KEYWORDS },
                     onNavigateToAiTopics = { currentSubScreen = DebugSubScreen.AI_TOPICS },
+                    onNavigateToAiDataset = { currentSubScreen = DebugSubScreen.AI_DATASET },
                     onNavigateToLogs = { 
                         liveLogs = AppLogManager.getLogs()
                         currentSubScreen = DebugSubScreen.LOGS 
@@ -155,6 +156,13 @@ fun DebugConsoleScreen(onBack: () -> Unit) {
             }
             DebugSubScreen.AI_TOPICS -> {
                 DebugAiTopicsInspectorScreen(
+                    onBack = { currentSubScreen = DebugSubScreen.HUB }
+                )
+            }
+            DebugSubScreen.AI_DATASET -> {
+                val vm = remember { AiEvaluationViewModel(context.applicationContext as android.app.Application) }
+                AiEvaluationScreen(
+                    viewModel = vm,
                     onBack = { currentSubScreen = DebugSubScreen.HUB }
                 )
             }
@@ -217,6 +225,7 @@ fun DebugConsoleHubScreen(
     onNavigateToSites: () -> Unit,
     onNavigateToKeywords: () -> Unit,
     onNavigateToAiTopics: () -> Unit,
+    onNavigateToAiDataset: () -> Unit,
     onNavigateToLogs: () -> Unit,
     onDeactivateClicked: () -> Unit
 ) {
@@ -294,7 +303,18 @@ fun DebugConsoleHubScreen(
                 onClick = onNavigateToAiTopics
             )
 
-            // Button 4: Interactive Live Logs Console
+            // Button 4: AI Dataset & Evaluation Lab
+            DebugActionCard(
+                title = "AI Dataset & Evaluation Lab 🧠",
+                description = "Inspect real-time inferences, accuracy metrics, and export daily CSV/JSON datasets.",
+                badgeText = "Ground Truth & Export",
+                badgeColor = NeonCyan,
+                iconEmoji = "📊",
+                iconBgColor = NeonCyan.copy(alpha = 0.15f),
+                onClick = onNavigateToAiDataset
+            )
+
+            // Button 5: Interactive Live Logs Console
             DebugActionCard(
                 title = "Interactive Logs Console 📜",
                 description = "Open real-time cyber terminal showing live DNS requests, OCR scrapes & AI logs.",
