@@ -1,6 +1,7 @@
 package com.halanoi.app
 
 import android.content.Context
+import android.os.Environment
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -124,6 +125,7 @@ object PermanentBackupManager {
     private const val BACKUP_FILENAME = "halanoi_notes_backup.json"
 
     fun saveBackup(context: Context, scratchpads: List<ScratchpadEntity>, notes: List<NoteEntity>, events: List<TimelineEventEntity>) {
+        if (scratchpads.isEmpty() && notes.isEmpty() && events.isEmpty()) return
         try {
             val root = JSONObject()
 
@@ -164,15 +166,45 @@ object PermanentBackupManager {
             }
             root.put("events", eventsArray)
 
-            // Save to internal filesDir
-            val internalFile = File(context.filesDir, BACKUP_FILENAME)
-            internalFile.writeText(root.toString())
+            val jsonText = root.toString(2)
 
-            // Save to external filesDir for persistence across app updates
-            val extDir = context.getExternalFilesDir(null)
-            if (extDir != null) {
-                val extFile = File(extDir, BACKUP_FILENAME)
-                extFile.writeText(root.toString())
+            // 1. Save to internal filesDir
+            try {
+                val internalFile = File(context.filesDir, BACKUP_FILENAME)
+                internalFile.writeText(jsonText)
+            } catch (e: Exception) {
+                Log.e("HalanoiBackup", "Internal write failed: ${e.message}")
+            }
+
+            // 2. Save to app-scoped external filesDir
+            try {
+                val extDir = context.getExternalFilesDir(null)
+                if (extDir != null) {
+                    val extFile = File(extDir, BACKUP_FILENAME)
+                    extFile.writeText(jsonText)
+                }
+            } catch (e: Exception) {
+                Log.e("HalanoiBackup", "External files write failed: ${e.message}")
+            }
+
+            // 3. Save to Public Documents directory (SURVIVES APP UNINSTALL)
+            try {
+                val docsDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "Halanoi")
+                if (!docsDir.exists()) docsDir.mkdirs()
+                val publicDocFile = File(docsDir, BACKUP_FILENAME)
+                publicDocFile.writeText(jsonText)
+            } catch (e: Exception) {
+                Log.w("HalanoiBackup", "Could not write to Documents: ${e.message}")
+            }
+
+            // 4. Save to Public Downloads directory (SURVIVES APP UNINSTALL)
+            try {
+                val dlDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Halanoi")
+                if (!dlDir.exists()) dlDir.mkdirs()
+                val publicDlFile = File(dlDir, BACKUP_FILENAME)
+                publicDlFile.writeText(jsonText)
+            } catch (e: Exception) {
+                Log.w("HalanoiBackup", "Could not write to Downloads: ${e.message}")
             }
         } catch (e: Exception) {
             Log.e("HalanoiBackup", "Failed to save permanent backup: ${e.message}")
@@ -185,15 +217,14 @@ object PermanentBackupManager {
             val existingNotes = dao.getAllNotesDirect()
             if (existingPads.isNotEmpty() || existingNotes.isNotEmpty()) return
 
-            val internalFile = File(context.filesDir, BACKUP_FILENAME)
-            val extDir = context.getExternalFilesDir(null)
-            val extFile = if (extDir != null) File(extDir, BACKUP_FILENAME) else null
+            val candidateFiles = listOf(
+                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "Halanoi/$BACKUP_FILENAME"),
+                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Halanoi/$BACKUP_FILENAME"),
+                File(context.filesDir, BACKUP_FILENAME),
+                context.getExternalFilesDir(null)?.let { File(it, BACKUP_FILENAME) }
+            ).filterNotNull()
 
-            val targetFile = when {
-                internalFile.exists() -> internalFile
-                extFile != null && extFile.exists() -> extFile
-                else -> null
-            } ?: return
+            val targetFile = candidateFiles.firstOrNull { it.exists() && it.length() > 0 } ?: return
 
             val jsonStr = targetFile.readText()
             if (jsonStr.isBlank()) return
@@ -245,9 +276,9 @@ object PermanentBackupManager {
                     )
                 }
             }
-            Log.d("HalanoiBackup", "Restored data from permanent local backup successfully!")
+            Log.i("HalanoiBackup", "Successfully auto-restored notes from ${targetFile.absolutePath}")
         } catch (e: Exception) {
-            Log.e("HalanoiBackup", "Restore failed: ${e.message}")
+            Log.e("HalanoiBackup", "Failed to auto-restore backup: ${e.message}")
         }
     }
 }
