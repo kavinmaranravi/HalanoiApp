@@ -120,6 +120,7 @@ fun FullScreenNoteEditor(
     }
 
     Scaffold(
+        modifier = Modifier.imePadding(),
         topBar = {
             TopAppBar(
                 navigationIcon = {

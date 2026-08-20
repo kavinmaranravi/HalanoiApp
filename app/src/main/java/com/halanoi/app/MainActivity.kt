@@ -391,6 +391,7 @@ fun HalanoiSpaApp(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = if (isFullScreenEditorActive) 0.dp else innerPadding.calculateTopPadding())
+                .imePadding()
         ) {
             AnimatedContent(
                 targetState = currentTab,
