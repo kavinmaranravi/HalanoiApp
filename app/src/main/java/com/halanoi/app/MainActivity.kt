@@ -198,6 +198,18 @@ fun HalanoiSpaApp(
         }
     }
 
+    // File Picker for Restoring Notes & Tasks Backup
+    val restoreNotesPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            notesViewModel.restoreFromUri(uri) { success ->
+                val msg = if (success) "Notes & Tasks Restored Successfully! ✅" else "Failed to restore: Invalid backup file ❌"
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     // File Picker for Bulk Import
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -527,6 +539,16 @@ fun HalanoiSpaApp(
                         onOpenArchitectureGuide = {
                             showAdminSheet = false
                             showArchitectureGuide = true
+                        },
+                        onRestoreNotes = {
+                            showAdminSheet = false
+                            restoreNotesPickerLauncher.launch(arrayOf("application/json", "*/*"))
+                        },
+                        onExportNotes = {
+                            showAdminSheet = false
+                            notesViewModel.exportBackup { msg ->
+                                Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                            }
                         },
                         onImportFile = {
                             showAdminSheet = false
@@ -2327,6 +2349,8 @@ fun FloatingGlassBottomDock(
 fun AdminSettingsSheetContent(
     isDeviceOwner: Boolean,
     onOpenArchitectureGuide: () -> Unit,
+    onRestoreNotes: () -> Unit,
+    onExportNotes: () -> Unit,
     onImportFile: () -> Unit,
     onOpenAiEvaluation: () -> Unit,
     onOpenDevConsole: () -> Unit,
@@ -2370,7 +2394,55 @@ fun AdminSettingsSheetContent(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // 2. Bulk Import
+        // 2. Restore Notes & Tasks from File
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .clickable { onRestoreNotes() },
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Default.Refresh, contentDescription = null, tint = CyberEmerald)
+                Spacer(modifier = Modifier.width(14.dp))
+                Column {
+                    Text("Restore Notes & Tasks 📥", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("1-tap pick backup file or load from Downloads/Documents", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // 3. Export Notes & Tasks Backup
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .clickable { onExportNotes() },
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = CyberEmerald)
+                Spacer(modifier = Modifier.width(14.dp))
+                Column {
+                    Text("Export Notes & Tasks 📤", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("Save fresh backup snapshot to public storage", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // 4. Bulk Import
         Card(
             modifier = Modifier
                 .fillMaxWidth()

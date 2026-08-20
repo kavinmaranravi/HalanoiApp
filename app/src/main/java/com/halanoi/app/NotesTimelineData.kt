@@ -257,35 +257,9 @@ object PermanentBackupManager {
         }
     }
 
-    suspend fun restoreIfEmpty(context: Context, dao: AppDao) {
-        try {
-            val existingPads = dao.getAllScratchpadsDirect()
-            val existingNotes = dao.getAllNotesDirect()
-            if (existingPads.isNotEmpty() || existingNotes.isNotEmpty()) return
-
-            var jsonStr = readFromMediaStoreDownloads(context)
-
-            if (jsonStr.isNullOrBlank()) {
-                val candidateFiles = listOf(
-                    File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "Halanoi/$BACKUP_FILENAME"),
-                    File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Halanoi/$BACKUP_FILENAME"),
-                    File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), BACKUP_FILENAME),
-                    File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), BACKUP_FILENAME),
-                    File(context.filesDir, BACKUP_FILENAME),
-                    context.getExternalFilesDir(null)?.let { File(it, BACKUP_FILENAME) }
-                ).filterNotNull()
-
-                val targetFile = candidateFiles.firstOrNull { it.exists() && it.length() > 0 }
-                if (targetFile != null) {
-                    jsonStr = targetFile.readText()
-                }
-            }
-
-            if (jsonStr.isNullOrBlank()) {
-                Log.w("HalanoiBackup", "No existing backup found to restore.")
-                return
-            }
-
+    suspend fun restoreFromJson(jsonStr: String, dao: AppDao): Boolean {
+        return try {
+            if (jsonStr.isBlank()) return false
             val root = JSONObject(jsonStr)
 
             val scratchpads = root.optJSONArray("scratchpads")
@@ -333,7 +307,67 @@ object PermanentBackupManager {
                     )
                 }
             }
-            Log.i("HalanoiBackup", "Successfully auto-restored notes and tasks from permanent backup!")
+            Log.i("HalanoiBackup", "Successfully restored data from JSON backup!")
+            true
+        } catch (e: Exception) {
+            Log.e("HalanoiBackup", "Error restoring from JSON: ${e.message}")
+            false
+        }
+    }
+
+    suspend fun restoreFromUri(context: Context, uri: Uri, dao: AppDao): Boolean {
+        return try {
+            val jsonStr = context.contentResolver.openInputStream(uri)?.use {
+                it.bufferedReader().readText()
+            }
+            if (!jsonStr.isNullOrBlank()) {
+                restoreFromJson(jsonStr, dao)
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            Log.e("HalanoiBackup", "Restore from Uri failed: ${e.message}")
+            false
+        }
+    }
+
+    suspend fun restoreIfEmpty(context: Context, dao: AppDao) {
+        try {
+            val existingPads = dao.getAllScratchpadsDirect()
+            val existingNotes = dao.getAllNotesDirect()
+            if (existingPads.isNotEmpty() || existingNotes.isNotEmpty()) return
+
+            var jsonStr = readFromMediaStoreDownloads(context)
+
+            if (jsonStr.isNullOrBlank()) {
+                val candidateFiles = listOf(
+                    File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "Halanoi/$BACKUP_FILENAME"),
+                    File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Halanoi/$BACKUP_FILENAME"),
+                    File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), BACKUP_FILENAME),
+                    File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), BACKUP_FILENAME),
+                    File(context.filesDir, BACKUP_FILENAME),
+                    context.getExternalFilesDir(null)?.let { File(it, BACKUP_FILENAME) }
+                ).filterNotNull()
+
+                for (file in candidateFiles) {
+                    try {
+                        if (file.exists() && file.length() > 0) {
+                            val text = file.readText()
+                            if (text.isNotBlank()) {
+                                jsonStr = text
+                                Log.i("HalanoiBackup", "Found direct readable backup file: ${file.absolutePath}")
+                                break
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.w("HalanoiBackup", "Could not read ${file.absolutePath}: ${e.message}")
+                    }
+                }
+            }
+
+            if (!jsonStr.isNullOrBlank()) {
+                restoreFromJson(jsonStr, dao)
+            }
         } catch (e: Exception) {
             Log.e("HalanoiBackup", "Failed to auto-restore backup: ${e.message}")
         }
@@ -389,6 +423,27 @@ class NotesTimelineViewModel(
         context?.let { ctx ->
             viewModelScope.launch(Dispatchers.IO) {
                 PermanentBackupManager.restoreIfEmpty(ctx, dao)
+            }
+        }
+    }
+
+    fun restoreFromUri(uri: Uri, onResult: (Boolean) -> Unit = {}) {
+        context?.let { ctx ->
+            viewModelScope.launch(Dispatchers.IO) {
+                val success = PermanentBackupManager.restoreFromUri(ctx, uri, dao)
+                onResult(success)
+            }
+        }
+    }
+
+    fun exportBackup(onResult: (String) -> Unit = {}) {
+        context?.let { ctx ->
+            viewModelScope.launch(Dispatchers.IO) {
+                val pads = dao.getAllScratchpadsDirect()
+                val nts = dao.getAllNotesDirect()
+                val evts = dao.getAllEventsDirect()
+                PermanentBackupManager.saveBackup(ctx, pads, nts, evts)
+                onResult("Backup saved to public Downloads/Halanoi and Documents/Halanoi")
             }
         }
     }
