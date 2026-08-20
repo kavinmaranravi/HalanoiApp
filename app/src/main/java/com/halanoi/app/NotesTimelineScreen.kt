@@ -44,19 +44,18 @@ fun NotesTimelineRoute(
     val events by viewModel.events.collectAsState(initial = emptyList())
     val scratchpads by viewModel.scratchpads.collectAsState(initial = emptyList())
 
-    var activeScratchpadId by remember { mutableStateOf<String?>(null) }
-    val activeScratchpad = scratchpads.find { it.id == activeScratchpadId }
+    var activeScratchpad by remember { mutableStateOf<ScratchpadEntity?>(null) }
 
-    LaunchedEffect(activeScratchpadId) {
-        onFullScreenModeChanged(activeScratchpadId != null)
+    LaunchedEffect(activeScratchpad) {
+        onFullScreenModeChanged(activeScratchpad != null)
     }
 
-    Crossfade(targetState = activeScratchpadId != null, label = "Screen Transition") { isFullScreen ->
+    Crossfade(targetState = activeScratchpad != null, label = "Screen Transition") { isFullScreen ->
         if (isFullScreen && activeScratchpad != null) {
             FullScreenNoteEditor(
-                pad = activeScratchpad,
+                pad = activeScratchpad!!,
                 onBack = { 
-                    activeScratchpadId = null
+                    activeScratchpad = null
                     onFullScreenModeChanged(false)
                 },
                 onUpdate = viewModel::updateScratchpad
@@ -78,10 +77,15 @@ fun NotesTimelineRoute(
                 onDeleteEvent = viewModel::deleteEvent,
                 onCreateNewScratchpad = {
                     val newId = viewModel.createEmptyScratchpad()
-                    activeScratchpadId = newId
+                    activeScratchpad = ScratchpadEntity(
+                        id = newId,
+                        title = "",
+                        content = "",
+                        updatedAt = System.currentTimeMillis()
+                    )
                 },
                 onOpenScratchpad = { pad ->
-                    activeScratchpadId = pad.id
+                    activeScratchpad = pad
                 },
                 onDeleteScratchpad = viewModel::deleteScratchpad
             )
@@ -96,19 +100,31 @@ fun FullScreenNoteEditor(
     onBack: () -> Unit,
     onUpdate: (ScratchpadEntity, String, String) -> Unit
 ) {
-    BackHandler(enabled = true) {
+    var title by remember(pad.id) { mutableStateOf(pad.title) }
+    var content by remember(pad.id) { mutableStateOf(pad.content) }
+
+    val saveAndClose = {
+        if (title != pad.title || content != pad.content) {
+            onUpdate(pad, title, content)
+        }
         onBack()
     }
 
-    var title by remember { mutableStateOf(pad.title) }
-    var content by remember { mutableStateOf(pad.content) }
-
-    LaunchedEffect(title, content) {
-        onUpdate(pad, title, content)
+    BackHandler(enabled = true) {
+        saveAndClose()
     }
 
-    val dateFormat = SimpleDateFormat("EEEE, MMMM d 'at' HH:mm", Locale.getDefault())
-    val dateString = dateFormat.format(Date(pad.updatedAt))
+    // Debounced background auto-save to avoid recomposing parent and jumping cursor
+    LaunchedEffect(title, content) {
+        if (title != pad.title || content != pad.content) {
+            kotlinx.coroutines.delay(600)
+            onUpdate(pad, title, content)
+        }
+    }
+
+    val dateString = remember(pad.updatedAt) {
+        SimpleDateFormat("EEEE, MMMM d 'at' HH:mm", Locale.getDefault()).format(Date(pad.updatedAt))
+    }
 
     val scrollState = rememberScrollState()
 
@@ -117,7 +133,7 @@ fun FullScreenNoteEditor(
         topBar = {
             TopAppBar(
                 navigationIcon = {
-                    IconButton(onClick = onBack) { 
+                    IconButton(onClick = saveAndClose) { 
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = MaterialTheme.colorScheme.onSurface) 
                     }
                 },
@@ -130,7 +146,7 @@ fun FullScreenNoteEditor(
                     )
                 },
                 actions = {
-                    IconButton(onClick = onBack) { 
+                    IconButton(onClick = saveAndClose) { 
                         Icon(
                             imageVector = Icons.Default.Check, 
                             contentDescription = "Save & Done", 
@@ -142,7 +158,8 @@ fun FullScreenNoteEditor(
                     containerColor = MaterialTheme.colorScheme.background
                 )
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
