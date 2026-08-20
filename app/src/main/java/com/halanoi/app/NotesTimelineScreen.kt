@@ -112,13 +112,6 @@ fun FullScreenNoteEditor(
 
     val scrollState = rememberScrollState()
 
-    // Auto-scroll as content expands so active typing is always visible
-    LaunchedEffect(content.length) {
-        if (content.isNotEmpty()) {
-            scrollState.animateScrollTo(scrollState.maxValue)
-        }
-    }
-
     Scaffold(
         modifier = Modifier.imePadding(),
         topBar = {
