@@ -408,22 +408,26 @@ private fun getSystemGuideSections(): List<GuideSection> {
             title = "Tab 4: Activity & Scratchpad Studio",
             category = "SCRATCHPAD",
             iconEmoji = "📝",
-            badge = "Notes & Public Storage Backup",
-            summary = "Distraction-free focus scratchpad and task tracker with permanent public storage backup redundancy.",
+            badge = "Notes, Tasks & Permanent Backup",
+            summary = "Distraction-free focus scratchpad and task tracker with unbypassable 3-tier backup & 1-tap restore redundancy.",
             details = listOf(
                 "Focus Tasks & Timeline" to "Create focus items with deadlines, checkbox completion animations, and milestone event logging.",
                 "Full-Screen Scratchpad with Tap-to-Front" to "Minimalist editor with intelligent onTextLayout cursor tracking. Tapping any paragraph lower down glides that exact line directly to the front/center above the keyboard.",
-                "Public Storage Backup (Survives Uninstalls)" to "Automatically syncs to public /Documents/Halanoi/ and /Download/Halanoi/ folders. Android never deletes public storage on uninstall, so re-installing Halanoi restores all your notes instantly."
+                "3-Layer Permanent Auto-Backup" to "Every note, task, and scratchpad edit is automatically mirrored to MediaStore Downloads ('Download/Halanoi/halanoi_notes_backup.json') and public Documents storage. MediaStore files persist even if Halanoi is completely uninstalled.",
+                "1-Tap Restore / Import (Admin Settings) 📥" to "If you reinstall Halanoi or switch devices, tap 'Restore Notes & Tasks' in Admin Settings to pick any backup JSON file. Android's OpenDocument system picker bypasses all Scoped Storage UID restrictions seamlessly.",
+                "1-Tap Manual Export Snapshot 📤" to "Generate and export fresh backup snapshots on demand to public storage or share across devices."
             )
         ),
         GuideSection(
             id = "admin",
-            title = "Hardware Admin & PC ADB Guide",
+            title = "Hardware Admin & Security Core",
             category = "ADMIN",
             iconEmoji = "🔒",
-            badge = "Anti-Uninstall & PC ADB",
-            summary = "Hardware-level Device Owner protection ensuring you cannot bypass your own rules during weak moments.",
+            badge = "Anti-Uninstall & Data Control",
+            summary = "Hardware-level Device Owner protection and central control hub for import/export, dataset evaluation, and ADB rules.",
             details = listOf(
+                "1-Tap Backup Restore & Export Hub" to "Admin settings contains direct 1-tap actions to export notes/tasks snapshots and restore from backup JSON files via system storage framework.",
+                "Bulk Rule Importer" to "Load custom DNS blocked sites, keyword filters, and locked applications in one go from export.txt.",
                 "Device Owner Hardening" to "Protects Halanoi from on-device uninstallation or forced clearing, enforcing sovereign discipline.",
                 "PC ADB Deactivation Guide" to "In Release builds, explains why admin cannot be disabled on the phone and provides the 1-tap copyable PC ADB command ('dpm remove-active-admin') to deactivate via USB."
             )
