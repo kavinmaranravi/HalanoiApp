@@ -110,6 +110,15 @@ fun FullScreenNoteEditor(
     val dateFormat = SimpleDateFormat("EEEE, MMMM d 'at' HH:mm", Locale.getDefault())
     val dateString = dateFormat.format(Date(pad.updatedAt))
 
+    val scrollState = rememberScrollState()
+
+    // Auto-scroll as content expands so active typing is always visible
+    LaunchedEffect(content.length) {
+        if (content.isNotEmpty()) {
+            scrollState.animateScrollTo(scrollState.maxValue)
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -146,6 +155,7 @@ fun FullScreenNoteEditor(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 20.dp)
+                .verticalScroll(scrollState)
         ) {
             BasicTextField(
                 value = title,
@@ -215,7 +225,7 @@ fun FullScreenNoteEditor(
                 ),
                 cursorBrush = SolidColor(CyberEmerald),
                 decorationBox = { innerTextField ->
-                    Box(modifier = Modifier.fillMaxSize().padding(vertical = 6.dp)) {
+                    Box(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
                         if (content.isEmpty()) {
                             Text(
                                 "Start typing thoughts, focus notes, or code snippets...",
@@ -229,8 +239,11 @@ fun FullScreenNoteEditor(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
+                    .defaultMinSize(minHeight = 400.dp)
             )
+
+            // Extra generous breathing space at the bottom so you can ALWAYS scroll past the last sentence!
+            Spacer(modifier = Modifier.height(260.dp))
         }
     }
 }
@@ -330,7 +343,7 @@ fun TasksAndTimelineTab(
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(10.dp),
-        contentPadding = PaddingValues(bottom = 80.dp)
+        contentPadding = PaddingValues(bottom = 140.dp)
     ) {
         item {
             Card(
@@ -573,7 +586,7 @@ fun ScratchpadsListTab(
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(10.dp),
-        contentPadding = PaddingValues(bottom = 80.dp)
+        contentPadding = PaddingValues(bottom = 140.dp)
     ) {
         item {
             Card(
