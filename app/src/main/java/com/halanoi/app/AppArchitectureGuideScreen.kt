@@ -408,12 +408,12 @@ private fun getSystemGuideSections(): List<GuideSection> {
             title = "Tab 4: Activity & Scratchpad Studio",
             category = "SCRATCHPAD",
             iconEmoji = "📝",
-            badge = "Notes & Permanent Backup",
-            summary = "Distraction-free focus scratchpad and task tracker with permanent local JSON backup redundancy.",
+            badge = "Notes & Public Storage Backup",
+            summary = "Distraction-free focus scratchpad and task tracker with permanent public storage backup redundancy.",
             details = listOf(
                 "Focus Tasks & Timeline" to "Create focus items with deadlines, checkbox completion animations, and milestone event logging.",
-                "Full-Screen Markdown Scratchpad" to "Minimalist, full-screen note editor with smooth soft scrolling, automatic cursor scroll-to-view, and 260.dp bottom keyboard clearance.",
-                "Permanent Local Auto-Backup (PermanentBackupManager)" to "Syncs notes to halanoi_notes_backup.json on every keystroke and auto-restores your data if the database is ever empty upon clean reinstall."
+                "Full-Screen Scratchpad with Tap-to-Front" to "Minimalist editor with intelligent onTextLayout cursor tracking. Tapping any paragraph lower down glides that exact line directly to the front/center above the keyboard.",
+                "Public Storage Backup (Survives Uninstalls)" to "Automatically syncs to public /Documents/Halanoi/ and /Download/Halanoi/ folders. Android never deletes public storage on uninstall, so re-installing Halanoi restores all your notes instantly."
             )
         ),
         GuideSection(
