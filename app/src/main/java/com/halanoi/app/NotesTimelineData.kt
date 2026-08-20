@@ -1,7 +1,12 @@
 package com.halanoi.app
 
+import android.content.ContentUris
+import android.content.ContentValues
 import android.content.Context
+import android.net.Uri
+import android.os.Build
 import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -168,46 +173,87 @@ object PermanentBackupManager {
 
             val jsonText = root.toString(2)
 
-            // 1. Save to internal filesDir
+            // 1. Internal filesDir
             try {
-                val internalFile = File(context.filesDir, BACKUP_FILENAME)
-                internalFile.writeText(jsonText)
+                File(context.filesDir, BACKUP_FILENAME).writeText(jsonText)
             } catch (e: Exception) {
                 Log.e("HalanoiBackup", "Internal write failed: ${e.message}")
             }
 
-            // 2. Save to app-scoped external filesDir
+            // 2. App-scoped external filesDir
             try {
-                val extDir = context.getExternalFilesDir(null)
-                if (extDir != null) {
-                    val extFile = File(extDir, BACKUP_FILENAME)
-                    extFile.writeText(jsonText)
+                context.getExternalFilesDir(null)?.let {
+                    File(it, BACKUP_FILENAME).writeText(jsonText)
                 }
             } catch (e: Exception) {
                 Log.e("HalanoiBackup", "External files write failed: ${e.message}")
             }
 
-            // 3. Save to Public Documents directory (SURVIVES APP UNINSTALL)
+            // 3. Direct Public Documents & Downloads
             try {
                 val docsDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "Halanoi")
                 if (!docsDir.exists()) docsDir.mkdirs()
-                val publicDocFile = File(docsDir, BACKUP_FILENAME)
-                publicDocFile.writeText(jsonText)
+                File(docsDir, BACKUP_FILENAME).writeText(jsonText)
             } catch (e: Exception) {
-                Log.w("HalanoiBackup", "Could not write to Documents: ${e.message}")
+                Log.w("HalanoiBackup", "Direct Documents write failed: ${e.message}")
             }
 
-            // 4. Save to Public Downloads directory (SURVIVES APP UNINSTALL)
             try {
                 val dlDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Halanoi")
                 if (!dlDir.exists()) dlDir.mkdirs()
-                val publicDlFile = File(dlDir, BACKUP_FILENAME)
-                publicDlFile.writeText(jsonText)
+                File(dlDir, BACKUP_FILENAME).writeText(jsonText)
             } catch (e: Exception) {
-                Log.w("HalanoiBackup", "Could not write to Downloads: ${e.message}")
+                Log.w("HalanoiBackup", "Direct Downloads write failed: ${e.message}")
+            }
+
+            // 4. MediaStore Downloads (100% Android Scoped Storage compliant - survives uninstalls)
+            try {
+                writeToMediaStoreDownloads(context, jsonText)
+            } catch (e: Exception) {
+                Log.e("HalanoiBackup", "MediaStore backup error: ${e.message}")
             }
         } catch (e: Exception) {
             Log.e("HalanoiBackup", "Failed to save permanent backup: ${e.message}")
+        }
+    }
+
+    private fun writeToMediaStoreDownloads(context: Context, jsonText: String) {
+        val resolver = context.contentResolver
+        val queryUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaStore.Downloads.EXTERNAL_CONTENT_URI
+        } else {
+            MediaStore.Files.getContentUri("external")
+        }
+
+        val projection = arrayOf(MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DISPLAY_NAME)
+        val selection = "${MediaStore.MediaColumns.DISPLAY_NAME} = ?"
+        val selectionArgs = arrayOf(BACKUP_FILENAME)
+
+        var existingUri: Uri? = null
+        resolver.query(queryUri, projection, selection, selectionArgs, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
+                existingUri = ContentUris.withAppendedId(queryUri, id)
+            }
+        }
+
+        val targetUri = existingUri ?: run {
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, BACKUP_FILENAME)
+                put(MediaStore.MediaColumns.MIME_TYPE, "application/json")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/Halanoi")
+                }
+            }
+            resolver.insert(queryUri, contentValues)
+        }
+
+        if (targetUri != null) {
+            resolver.openOutputStream(targetUri, "wt")?.use { os ->
+                os.write(jsonText.toByteArray(Charsets.UTF_8))
+                os.flush()
+            }
+            Log.i("HalanoiBackup", "Successfully saved backup via MediaStore: $targetUri")
         }
     }
 
@@ -217,17 +263,28 @@ object PermanentBackupManager {
             val existingNotes = dao.getAllNotesDirect()
             if (existingPads.isNotEmpty() || existingNotes.isNotEmpty()) return
 
-            val candidateFiles = listOf(
-                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "Halanoi/$BACKUP_FILENAME"),
-                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Halanoi/$BACKUP_FILENAME"),
-                File(context.filesDir, BACKUP_FILENAME),
-                context.getExternalFilesDir(null)?.let { File(it, BACKUP_FILENAME) }
-            ).filterNotNull()
+            var jsonStr = readFromMediaStoreDownloads(context)
 
-            val targetFile = candidateFiles.firstOrNull { it.exists() && it.length() > 0 } ?: return
+            if (jsonStr.isNullOrBlank()) {
+                val candidateFiles = listOf(
+                    File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "Halanoi/$BACKUP_FILENAME"),
+                    File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Halanoi/$BACKUP_FILENAME"),
+                    File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), BACKUP_FILENAME),
+                    File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), BACKUP_FILENAME),
+                    File(context.filesDir, BACKUP_FILENAME),
+                    context.getExternalFilesDir(null)?.let { File(it, BACKUP_FILENAME) }
+                ).filterNotNull()
 
-            val jsonStr = targetFile.readText()
-            if (jsonStr.isBlank()) return
+                val targetFile = candidateFiles.firstOrNull { it.exists() && it.length() > 0 }
+                if (targetFile != null) {
+                    jsonStr = targetFile.readText()
+                }
+            }
+
+            if (jsonStr.isNullOrBlank()) {
+                Log.w("HalanoiBackup", "No existing backup found to restore.")
+                return
+            }
 
             val root = JSONObject(jsonStr)
 
@@ -276,10 +333,42 @@ object PermanentBackupManager {
                     )
                 }
             }
-            Log.i("HalanoiBackup", "Successfully auto-restored notes from ${targetFile.absolutePath}")
+            Log.i("HalanoiBackup", "Successfully auto-restored notes and tasks from permanent backup!")
         } catch (e: Exception) {
             Log.e("HalanoiBackup", "Failed to auto-restore backup: ${e.message}")
         }
+    }
+
+    private fun readFromMediaStoreDownloads(context: Context): String? {
+        try {
+            val resolver = context.contentResolver
+            val queryUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                MediaStore.Downloads.EXTERNAL_CONTENT_URI
+            } else {
+                MediaStore.Files.getContentUri("external")
+            }
+
+            val projection = arrayOf(MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DISPLAY_NAME)
+            val selection = "${MediaStore.MediaColumns.DISPLAY_NAME} = ?"
+            val selectionArgs = arrayOf(BACKUP_FILENAME)
+
+            resolver.query(queryUri, projection, selection, selectionArgs, "${MediaStore.MediaColumns._ID} DESC")?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
+                    val contentUri = ContentUris.withAppendedId(queryUri, id)
+                    resolver.openInputStream(contentUri)?.use { inputStream ->
+                        val text = inputStream.bufferedReader().readText()
+                        if (text.isNotBlank()) {
+                            Log.i("HalanoiBackup", "Read backup via MediaStore ($contentUri)")
+                            return text
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.w("HalanoiBackup", "MediaStore read failed: ${e.message}")
+        }
+        return null
     }
 }
 

@@ -18,7 +18,7 @@ class NotesTimelineActivity : ComponentActivity() {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 val database = AppDatabase.getDatabase(applicationContext)
-                return NotesTimelineViewModel(database.appDao()) as T
+                return NotesTimelineViewModel(database.appDao(), applicationContext) as T
             }
         }
     }
