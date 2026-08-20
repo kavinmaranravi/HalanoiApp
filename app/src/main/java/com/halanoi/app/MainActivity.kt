@@ -137,6 +137,15 @@ fun HalanoiSpaApp(
     var showAdminSheet by remember { mutableStateOf(false) }
     var isFullScreenEditorActive by remember { mutableStateOf(false) }
     var showAiEvaluationScreen by remember { mutableStateOf(false) }
+    var showArchitectureGuide by remember { mutableStateOf(false) }
+
+    if (showArchitectureGuide) {
+        BackHandler { showArchitectureGuide = false }
+        AppArchitectureGuideScreen(
+            onBack = { showArchitectureGuide = false }
+        )
+        return
+    }
 
     if (showAiEvaluationScreen) {
         BackHandler { showAiEvaluationScreen = false }
@@ -514,6 +523,10 @@ fun HalanoiSpaApp(
                 ) {
                     AdminSettingsSheetContent(
                         isDeviceOwner = isDeviceOwner,
+                        onOpenArchitectureGuide = {
+                            showAdminSheet = false
+                            showArchitectureGuide = true
+                        },
                         onImportFile = {
                             showAdminSheet = false
                             filePickerLauncher.launch(arrayOf("text/plain"))
@@ -2312,6 +2325,7 @@ fun FloatingGlassBottomDock(
 @Composable
 fun AdminSettingsSheetContent(
     isDeviceOwner: Boolean,
+    onOpenArchitectureGuide: () -> Unit,
     onImportFile: () -> Unit,
     onOpenAiEvaluation: () -> Unit,
     onOpenDevConsole: () -> Unit,
@@ -2330,7 +2344,32 @@ fun AdminSettingsSheetContent(
             modifier = Modifier.padding(top = 2.dp, bottom = 18.dp)
         )
 
-        // Bulk Import
+        // 1. Sovereign Architecture & Guide
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .clickable { onOpenArchitectureGuide() },
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Default.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.width(14.dp))
+                Column {
+                    Text("Sovereign Architecture & Guide 📖", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = MaterialTheme.colorScheme.primary)
+                    Text("Complete feature blueprint, AI layer & security mechanics", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // 2. Bulk Import
         Card(
             modifier = Modifier
                 .fillMaxWidth()

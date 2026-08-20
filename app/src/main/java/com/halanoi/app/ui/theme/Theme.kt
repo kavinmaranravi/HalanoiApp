@@ -57,7 +57,7 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun HalanoiTheme(
-    darkTheme: Boolean = true,
+    darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
