@@ -25,7 +25,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -101,11 +104,14 @@ fun FullScreenNoteEditor(
     onUpdate: (ScratchpadEntity, String, String) -> Unit
 ) {
     var title by remember(pad.id) { mutableStateOf(pad.title) }
-    var content by remember(pad.id) { mutableStateOf(pad.content) }
+    var contentValue by remember(pad.id) { 
+        mutableStateOf(TextFieldValue(text = pad.content, selection = TextRange(0))) 
+    }
+    var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
 
     val saveAndClose = {
-        if (title != pad.title || content != pad.content) {
-            onUpdate(pad, title, content)
+        if (title != pad.title || contentValue.text != pad.content) {
+            onUpdate(pad, title, contentValue.text)
         }
         onBack()
     }
@@ -115,10 +121,10 @@ fun FullScreenNoteEditor(
     }
 
     // Debounced background auto-save to avoid recomposing parent and jumping cursor
-    LaunchedEffect(title, content) {
-        if (title != pad.title || content != pad.content) {
+    LaunchedEffect(title, contentValue.text) {
+        if (title != pad.title || contentValue.text != pad.content) {
             kotlinx.coroutines.delay(600)
-            onUpdate(pad, title, content)
+            onUpdate(pad, title, contentValue.text)
         }
     }
 
@@ -127,6 +133,18 @@ fun FullScreenNoteEditor(
     }
 
     val scrollState = rememberScrollState()
+
+    // When the user taps ANY paragraph anywhere in the note, instantly auto-scroll that paragraph front and center!
+    LaunchedEffect(contentValue.selection) {
+        textLayoutResult?.let { layout ->
+            if (contentValue.selection.start in 0..contentValue.text.length && contentValue.text.isNotEmpty()) {
+                val cursorRect = layout.getCursorRect(contentValue.selection.start)
+                // Generous 70dp offset so the tapped line is clearly visible above the keyboard
+                val targetScroll = (cursorRect.top - 70f).coerceAtLeast(0f).toInt()
+                scrollState.animateScrollTo(targetScroll)
+            }
+        }
+    }
 
     Scaffold(
         modifier = Modifier.imePadding(),
@@ -212,7 +230,7 @@ fun FullScreenNoteEditor(
                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
                 ) {
                     Text(
-                        text = "${content.length} chars",
+                        text = "${contentValue.text.length} chars",
                         fontSize = 10.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -227,8 +245,9 @@ fun FullScreenNoteEditor(
             )
 
             BasicTextField(
-                value = content,
-                onValueChange = { content = it },
+                value = contentValue,
+                onValueChange = { contentValue = it },
+                onTextLayout = { textLayoutResult = it },
                 textStyle = MaterialTheme.typography.bodyLarge.copy(
                     color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 15.sp,
@@ -237,7 +256,7 @@ fun FullScreenNoteEditor(
                 cursorBrush = SolidColor(CyberEmerald),
                 decorationBox = { innerTextField ->
                     Box(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-                        if (content.isEmpty()) {
+                        if (contentValue.text.isEmpty()) {
                             Text(
                                 "Start typing thoughts, focus notes, or code snippets...",
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
