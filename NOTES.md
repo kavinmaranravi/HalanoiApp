@@ -76,4 +76,4 @@ To safely remove the app, connect your phone to your PC via USB with ADB:
 
 **Stay focused and good luck on your journey!**
 
-*Author by Halanoi*
+**Author: Kavinmaran Ravi ([@kavinmaranravi](https://github.com/kavinmaranravi)) — Halanoi**

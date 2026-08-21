@@ -272,7 +272,7 @@ If Halanoi has helped you reclaim your attention, stay productive, or build deep
 
 **Stay focused and good luck on your work!**
 
-*Author by Halanoi*
+**Author: Kavinmaran Ravi ([@kavinmaranravi](https://github.com/kavinmaranravi)) — Halanoi**
 
 ---
 
