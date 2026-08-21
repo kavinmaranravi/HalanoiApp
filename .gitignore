@@ -16,3 +16,5 @@ local.properties
 *.txt
 *.log
 google-services.json
+*.mp4
+Demo_video.mp4
