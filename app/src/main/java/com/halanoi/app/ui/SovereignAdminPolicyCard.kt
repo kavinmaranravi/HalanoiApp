@@ -129,7 +129,7 @@ fun SovereignAdminPolicyDialog(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "Halanoi Sovereign enforces unbreakable focus so you can achieve your goals. To protect you against moments of impulsive bypass, app uninstallation, data wipe, or phone resets, the on-device Admin Deactivate button is intentionally removed from the Release build.",
+                    text = "• VPN Policy Lockdown: In the Release build with Device Owner active, Android's DISALLOW_CONFIG_VPN policy strictly locks the VPN so you cannot switch over or turn off the VPN in system settings. In the Debug build, you can freely change, toggle, or turn off the VPN.\n\n• Unbreakable Ambition Mode: To protect you against moments of impulsive bypass, app uninstallation, or data wipes, the on-device Admin Deactivate button and edit/delete controls are intentionally removed from the Release build.",
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 17.sp

@@ -87,23 +87,19 @@ graph TD
 
 Setting up Halanoi Sovereign requires setting it as a **Device Owner** using Android Developer Options and a PC.
 
-### 🧪 Choose Your Version: Test/Sandbox vs. Lifelong Production
+### 🧪 Choose Your Version: Debug (Flexible) vs. Release (Ambition Mode)
 
-Because Halanoi Sovereign uses enterprise-grade administrative locks, we recommend choosing your version carefully based on your experience level:
+Because Halanoi Sovereign uses enterprise-grade administrative locks, choose your build flavor carefully based on your needs:
 
-> [!WARNING]
-> **Safety Notice:** To protect users from accidentally locking their devices permanently, we **DO NOT** distribute the pre-compiled Production APK in the Releases section. 
-> * If you want a quick, risk-free test, use the pre-compiled **Sandbox Version**.
-> * If you are 100% committed and want the **Lifelong Production Version**, you must download the source code and compile it yourself using a laptop/PC (instructions below).
+*   **Option A: 🧪 Debug Version (Flexible / Casual Focus)**
+    *   **Features**: You can freely delete or edit blocked apps, custom websites, and keywords. You can toggle or turn off the VPN and Accessibility service when you need flexibility. Includes an in-app **"Deactivate Device Owner 🔓"** button.
+    *   **Best for**: Trying out the app, casual/occasional focus sessions, and flexible days so you don't feel frustrated when schedules change.
+    *   **Availability**: Pre-compiled as `app-debug.apk` under the [Releases](https://github.com/kavinmaranravi/HalanoiApp/releases) tab or self-built via `./gradlew assembleDebug`.
 
-*   **Option A: 🧪 Test & Sandbox Version (Recommended for First-Time Users)**
-    *   **Availability**: Pre-compiled as `Halanoi_Sovereign_Sandbox.apk` under the [Releases](https://github.com/kavinmaranravi/HalanoiApp/releases) tab.
-    *   **Features**: Full focus locks (browser shields, local AI sniper, settings freeze) but includes an in-app **"Deactivate Device Owner 🔓"** button and allows ADB command removal.
-    *   **Best for**: Trying out the app, recording tutorials, and experiencing the layout without any risk of permanent lockdown.
-*   **Option B: 🔒 Lifelong Production Version (For Unbreakable Focus)**
-    *   **Availability**: **Self-compiled only.** You must build this yourself to ensure you understand ADB and Gradle commands.
-    *   **Features**: Complete, absolute lockdown. No deactivation buttons, and ADB removal is permanently blocked at the OS level by Android security.
-    *   **Removal**: **Requires a full Factory Reset** (wiping all phone data) to remove from the device. Use only when you are 100% committed to your long-term study streak!
+*   **Option B: 🔒 Release Version (Ambition Mode — 100% Commitment)**
+    *   **Features**: Absolute, unbreakable lockdown. We **intentionally stripped out all edit and delete buttons** for blocked sites, keywords, and apps, and removed the on-device Admin Deactivate button. Device Owner policy enforces `DISALLOW_CONFIG_VPN` so the VPN cannot be turned off or switched over to another VPN.
+    *   **Best for**: Hardcore deep work streaks where you want zero temptation to bypass your own blocks.
+    *   **Availability**: **Self-compiled only.** We intentionally **do not** distribute the pre-compiled Release APK in GitHub Releases because mastering Halanoi requires understanding its enterprise-level Device Owner mechanics and ADB commands. All source code is provided on GitHub so you can download or fork the repository and compile the Release APK on your PC when you are ready.
     *   **How to Build & Locate**:
         1. Open your terminal on your PC in the project root folder.
         2. Compile the release build:
@@ -113,7 +109,13 @@ Because Halanoi Sovereign uses enterprise-grade administrative locks, we recomme
         3. The production APK will be generated at:
             📂 `app/build/outputs/apk/release/app-release.apk`
 
+---
 
+### 🛡️ Accessibility Loop Fix & UX Refinements
+* **Accessibility Alert Fix**: The background watchdog throttles warnings to **once every 30 seconds**, giving you ample time to uninstall or configure apps without being flooded by alert screens or stuck in a danger zone.
+* **1-Tap Notes & Tasks Restore & Export**: Notes, tasks, and scratchpad pads automatically save to `MediaStore.Downloads` (`Download/Halanoi/halanoi_notes_backup.json`). In Admin Settings, 1-tap "Restore Notes & Tasks 📥" uses Android's native file picker to bypass Scoped Storage UID restrictions and restore your notes with 100% reliability after an uninstall or phone reset.
+
+---
 
 ### Prerequisites:
 1.  Enable **Developer Options** on your phone (Tap *Build Number* 7 times in Settings).
@@ -265,6 +267,12 @@ If Halanoi has helped you reclaim your attention, stay productive, or build deep
     <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="ko-fi" height="36" />
   </a>
 </p>
+
+---
+
+**Stay focused and good luck on your work!**
+
+*Author by Halanoi*
 
 ---
 

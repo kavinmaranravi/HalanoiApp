@@ -345,6 +345,7 @@ private fun getSystemGuideSections(): List<GuideSection> {
                 "Hero Master Orb" to "Tap the orb to toggle between STANDBY MODE and SOVEREIGN ACTIVE. Engaging the orb activates the local loopback VPN packet filter.",
                 "Interceptions Scoreboard (+1 Counter)" to "Increments automatically whenever Halanoi blocks a blacklisted website, catches a locked app, or deflects a distracting video via AI.",
                 "Browser Access Modes" to "Choose between 'Standard' (vault only), 'Chrome Only' (forces browsing through policy Chrome), and 'Zero Web' (complete internet kill-switch for deep work).",
+                "VPN Policy Lockdown (Release vs. Debug)" to "In the Release build with Device Owner active, Android's DISALLOW_CONFIG_VPN policy strictly locks the VPN so you cannot switch over or turn off the VPN in system settings. In the Debug build, you can freely change, toggle, or turn off the VPN for testing.",
                 "Emergency Hardware Lockdown 🔒" to "1-tap instant lock that secures the device screen via Android Device Admin policy."
             )
         ),
@@ -426,6 +427,8 @@ private fun getSystemGuideSections(): List<GuideSection> {
             badge = "Anti-Uninstall & Data Control",
             summary = "Hardware-level Device Owner protection and central control hub for import/export, dataset evaluation, and ADB rules.",
             details = listOf(
+                "Release vs Debug Policy Mechanics" to "In Debug builds, you can delete/edit blocked sites, keywords, locked apps, and toggle VPN and Accessibility freely. In Release builds (Ambition Mode), edit/delete buttons and on-device deactivation are intentionally stripped so you can focus 100% on your goals without bypass temptation.",
+                "VPN Policy Enforcement" to "In Admin Settings and system settings on Release builds, you cannot switch over or turn off the VPN due to Device Policy lock. In Debug builds, developers can toggle or turn off the VPN.",
                 "1-Tap Backup Restore & Export Hub" to "Admin settings contains direct 1-tap actions to export notes/tasks snapshots and restore from backup JSON files via system storage framework.",
                 "Bulk Rule Importer" to "Load custom DNS blocked sites, keyword filters, and locked applications in one go from export.txt.",
                 "Device Owner Hardening" to "Protects Halanoi from on-device uninstallation or forced clearing, enforcing sovereign discipline.",
