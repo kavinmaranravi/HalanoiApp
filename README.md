@@ -48,7 +48,14 @@
 *   **Active Store Scanner**: Runs background scans while you browse the Google Play Store, Vivo App Store, or package installers. It automatically detects and hides new browsers the moment they are installed.
 *   **Hydra Auto-Hide**: If an unauthorized browser is opened, it is instantly hidden and killed via the OS, removing its launcher icon.
 
-### 3. OS-Level Device Owner Lockdown (God Mode) 🔒
+### 3. AI Dataset & Evaluation Lab (ML Ground Truth Studio) 📊
+*   **Live Inference Telemetry**: Captures real-time screen scraping events (scraped text, predicted category, confidence score, and timestamp) directly into a local SQLite database.
+*   **Interactive Ground-Truth Tagging**: Rate live inferences on the fly: 👍 Correct, ⚠️ False Positive (over-blocked safe content), or ❌ False Negative (missed distraction).
+*   **Live Accuracy & Metrics Dashboard**: Real-time calculation of model precision, false positive rates, and deflection accuracy.
+*   **1-Tap Dataset Exporter**: Export collected mobile telemetry into standardized **RFC 4180 CSV** (for Pandas/Excel/Jupyter) or **JSON** for fine-tuning.
+*   🧠 **Model Training Pipeline**: Visit the companion repository [**kavinmaranravi/Halanoi_AI**](https://github.com/kavinmaranravi/Halanoi_AI) to access the complete dataset, PyTorch/TensorFlow training scripts, and model quantization pipeline used to build the on-device TFLite models!
+
+### 4. OS-Level Device Owner Lockdown (God Mode) 🔒
 *   **Anti-Uninstall Guard**: Prevents the app from being uninstalled.
 *   **Anti-Clear-Data Guard**: Greys out "Force Stop" and "Clear Data" inside the Android App Info settings.
 *   **Settings Freeze**: Locks the Accessibility Settings menu so the Accessibility Service cannot be disabled.
