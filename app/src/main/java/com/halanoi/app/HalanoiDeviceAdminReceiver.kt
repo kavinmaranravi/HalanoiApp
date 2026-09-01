@@ -29,11 +29,10 @@ class HalanoiDeviceAdminReceiver : DeviceAdminReceiver() {
 
         if (dpm.isDeviceOwnerApp(context.packageName)) {
             try {
-                // 1. 🛡️ LOCK ACCESSIBILITY TOGGLES: Clear the whitelist to completely freeze and grey out ALL accessibility toggles!
-                // This makes the Halanoi toggle (and all others) greyed out so they cannot be clicked.
-                dpm.setPermittedAccessibilityServices(admin, listOf())
+                // 1. 🛡️ PERMIT HALANOI ACCESSIBILITY: Allow only Halanoi's package while blocking third-party bypass tools
+                dpm.setPermittedAccessibilityServices(admin, listOf(context.packageName))
 
-                // 2. Lock the Accessibility Settings menu
+                // 2. Lock the Accessibility Settings menu to prevent tampering
                 dpm.addUserRestriction(admin, "no_config_accessibility")
 
                 // 2b. Disable Factory Reset
