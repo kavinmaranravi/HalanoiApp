@@ -103,6 +103,9 @@ class MainActivity : ComponentActivity() {
         // BOOT THE C++ ENGINE
         Log.d("HalanoiBoot", HalanoiCore.initializeSovereignEngine())
 
+        // ENFORCE DPM POLICIES & RE-ACTIVATE ACCESSIBILITY SERVICE
+        HalanoiDeviceAdminReceiver.enforceHalanoiPolicies(applicationContext)
+
         setContent {
             HalanoiTheme {
                 Surface(
@@ -453,6 +456,9 @@ fun HalanoiSpaApp(
                             showDeactivateDialog = true
                         },
                         onOpenAccessibilitySettings = {
+                            if (isDeviceOwner) {
+                                HalanoiDeviceAdminReceiver.enforceHalanoiPolicies(context)
+                            }
                             try {
                                 val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
                                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
