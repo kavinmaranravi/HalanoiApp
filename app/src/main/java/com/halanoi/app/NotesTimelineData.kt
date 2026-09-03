@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -230,30 +231,63 @@ object PermanentBackupManager {
         val selectionArgs = arrayOf(BACKUP_FILENAME)
 
         var existingUri: Uri? = null
-        resolver.query(queryUri, projection, selection, selectionArgs, null)?.use { cursor ->
-            if (cursor.moveToFirst()) {
-                val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
-                existingUri = ContentUris.withAppendedId(queryUri, id)
+        try {
+            resolver.query(queryUri, projection, selection, selectionArgs, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
+                    existingUri = ContentUris.withAppendedId(queryUri, id)
+                }
+            }
+        } catch (e: Exception) {
+            Log.w("HalanoiBackup", "Query existing MediaStore failed: ${e.message}")
+        }
+
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, BACKUP_FILENAME)
+            put(MediaStore.MediaColumns.MIME_TYPE, "application/json")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/Halanoi")
             }
         }
 
-        val targetUri = existingUri ?: run {
-            val contentValues = ContentValues().apply {
-                put(MediaStore.MediaColumns.DISPLAY_NAME, BACKUP_FILENAME)
-                put(MediaStore.MediaColumns.MIME_TYPE, "application/json")
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/Halanoi")
+        var targetUri = existingUri
+        if (targetUri == null) {
+            try {
+                targetUri = resolver.insert(queryUri, contentValues)
+            } catch (e: Exception) {
+                Log.w("HalanoiBackup", "Insert failed: ${e.message}, deleting any stale record and retrying")
+                try {
+                    resolver.delete(queryUri, selection, selectionArgs)
+                    targetUri = resolver.insert(queryUri, contentValues)
+                } catch (e2: Exception) {
+                    Log.e("HalanoiBackup", "Fallback insert also failed: ${e2.message}")
                 }
             }
-            resolver.insert(queryUri, contentValues)
         }
 
         if (targetUri != null) {
-            resolver.openOutputStream(targetUri, "wt")?.use { os ->
-                os.write(jsonText.toByteArray(Charsets.UTF_8))
-                os.flush()
+            try {
+                resolver.openOutputStream(targetUri, "wt")?.use { os ->
+                    os.write(jsonText.toByteArray(Charsets.UTF_8))
+                    os.flush()
+                }
+                Log.i("HalanoiBackup", "Successfully saved backup via MediaStore: $targetUri")
+            } catch (e: Exception) {
+                Log.e("HalanoiBackup", "Failed to write to $targetUri: ${e.message}, recreating fresh record")
+                try {
+                    resolver.delete(targetUri, null, null)
+                    val freshUri = resolver.insert(queryUri, contentValues)
+                    if (freshUri != null) {
+                        resolver.openOutputStream(freshUri, "wt")?.use { os ->
+                            os.write(jsonText.toByteArray(Charsets.UTF_8))
+                            os.flush()
+                        }
+                        Log.i("HalanoiBackup", "Successfully wrote to recreated MediaStore URI: $freshUri")
+                    }
+                } catch (recreateEx: Exception) {
+                    Log.e("HalanoiBackup", "Recreate fallback failed: ${recreateEx.message}")
+                }
             }
-            Log.i("HalanoiBackup", "Successfully saved backup via MediaStore: $targetUri")
         }
     }
 
@@ -431,7 +465,9 @@ class NotesTimelineViewModel(
         context?.let { ctx ->
             viewModelScope.launch(Dispatchers.IO) {
                 val success = PermanentBackupManager.restoreFromUri(ctx, uri, dao)
-                onResult(success)
+                withContext(Dispatchers.Main) {
+                    onResult(success)
+                }
             }
         }
     }
@@ -443,7 +479,9 @@ class NotesTimelineViewModel(
                 val nts = dao.getAllNotesDirect()
                 val evts = dao.getAllEventsDirect()
                 PermanentBackupManager.saveBackup(ctx, pads, nts, evts)
-                onResult("Backup saved to public Downloads/Halanoi and Documents/Halanoi")
+                withContext(Dispatchers.Main) {
+                    onResult("Backup saved to public Downloads/Halanoi and Documents/Halanoi")
+                }
             }
         }
     }

@@ -205,7 +205,9 @@ fun HalanoiSpaApp(
         if (uri != null) {
             notesViewModel.restoreFromUri(uri) { success ->
                 val msg = if (success) "Notes & Tasks Restored Successfully! ✅" else "Failed to restore: Invalid backup file ❌"
-                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -547,7 +549,9 @@ fun HalanoiSpaApp(
                         onExportNotes = {
                             showAdminSheet = false
                             notesViewModel.exportBackup { msg ->
-                                Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                                }
                             }
                         },
                         onImportFile = {
