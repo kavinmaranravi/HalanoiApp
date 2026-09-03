@@ -3,6 +3,7 @@ package com.halanoi.app
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
+import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -194,24 +195,33 @@ object PermanentBackupManager {
             try {
                 val docsDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "Halanoi")
                 if (!docsDir.exists()) docsDir.mkdirs()
-                File(docsDir, BACKUP_FILENAME).writeText(jsonText)
+                val docFile = File(docsDir, BACKUP_FILENAME)
+                docFile.writeText(jsonText)
+                MediaScannerConnection.scanFile(context, arrayOf(docFile.absolutePath), arrayOf("application/json"), null)
             } catch (e: Exception) {
                 Log.w("HalanoiBackup", "Direct Documents write failed: ${e.message}")
             }
 
+            var directDownloadSuccess = false
             try {
                 val dlDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Halanoi")
                 if (!dlDir.exists()) dlDir.mkdirs()
-                File(dlDir, BACKUP_FILENAME).writeText(jsonText)
+                val targetFile = File(dlDir, BACKUP_FILENAME)
+                targetFile.writeText(jsonText)
+                directDownloadSuccess = true
+                MediaScannerConnection.scanFile(context, arrayOf(targetFile.absolutePath), arrayOf("application/json"), null)
+                Log.i("HalanoiBackup", "Direct Downloads write successful: ${targetFile.absolutePath}")
             } catch (e: Exception) {
                 Log.w("HalanoiBackup", "Direct Downloads write failed: ${e.message}")
             }
 
-            // 4. MediaStore Downloads (100% Android Scoped Storage compliant - survives uninstalls)
-            try {
-                writeToMediaStoreDownloads(context, jsonText)
-            } catch (e: Exception) {
-                Log.e("HalanoiBackup", "MediaStore backup error: ${e.message}")
+            // 4. MediaStore Downloads fallback (only if direct write failed, avoiding duplicate (1), (2) files)
+            if (!directDownloadSuccess) {
+                try {
+                    writeToMediaStoreDownloads(context, jsonText)
+                } catch (e: Exception) {
+                    Log.e("HalanoiBackup", "MediaStore backup error: ${e.message}")
+                }
             }
         } catch (e: Exception) {
             Log.e("HalanoiBackup", "Failed to save permanent backup: ${e.message}")

