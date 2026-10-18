@@ -3,10 +3,11 @@
 
 <p align="center">
   <a href="https://raw.githubusercontent.com/kavinmaranravi/HalanoiApp/main/graphics/hero_banner.png" target="_blank">
-    <img src="graphics/hero_banner.jpg#gh-dark-mode-only" alt="Halanoi Sovereign Dark Banner" width="100%">
-  </a>
-  <a href="https://raw.githubusercontent.com/kavinmaranravi/HalanoiApp/main/graphics/hero_banner_light.png" target="_blank">
-    <img src="graphics/hero_banner_light.jpg#gh-light-mode-only" alt="Halanoi Sovereign Light Banner" width="100%">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="graphics/hero_banner.jpg">
+      <source media="(prefers-color-scheme: light)" srcset="graphics/hero_banner_light.jpg">
+      <img alt="Halanoi Sovereign Banner" src="graphics/hero_banner.jpg" width="100%">
+    </picture>
   </a>
 </p>
 
