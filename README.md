@@ -2,13 +2,13 @@
 ### High-Security Offline Android Focus & Anti-Distraction Engine
 
 <p align="center">
-  <a href="https://raw.githubusercontent.com/kavinmaranravi/HalanoiApp/main/graphics/hero_banner.png" target="_blank">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="graphics/hero_banner.jpg">
-      <source media="(prefers-color-scheme: light)" srcset="graphics/hero_banner_light.jpg">
-      <img alt="Halanoi Sovereign Banner" src="graphics/hero_banner.jpg" width="100%">
-    </picture>
-  </a>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="graphics/hero_banner.jpg">
+    <source media="(prefers-color-scheme: light)" srcset="graphics/hero_banner_light.jpg">
+    <img alt="Halanoi Sovereign Banner" src="graphics/hero_banner.jpg" width="100%">
+  </picture>
+  <br />
+  <sub>🔍 <b>View Full Screen:</b> <a href="https://raw.githubusercontent.com/kavinmaranravi/HalanoiApp/main/graphics/hero_banner.png" target="_blank"><b>🌙 Dark Edition (2400×1200)</b></a> &nbsp;|&nbsp; <a href="https://raw.githubusercontent.com/kavinmaranravi/HalanoiApp/main/graphics/hero_banner_light.png" target="_blank"><b>☀️ Light Edition (2400×1200)</b></a></sub>
 </p>
 
 <p align="center">
