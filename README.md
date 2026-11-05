@@ -30,7 +30,7 @@
 ## 📸 Demo & Visual Proof
 
 <p align="center">
-  <a href="https://drive.google.com/file/d/1r638o7YXSldGb8JchCbN1x6woVLiNB5q/view?usp=sharing">
+  <a href="https://drive.google.com/file/d/1QpYPv9bkby0W_xi0InX1EtlxzbwiVvqR/view?usp=sharing">
     <img src="graphics/video_placeholder.png" alt="Watch the Demo Video" width="400" />
   </a>
   <br />
